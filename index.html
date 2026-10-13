@@ -110,6 +110,7 @@
   <!-- NAVIGATION TABS -->
   <div class="nav-tabs" id="navTabsContainer">
     <button class="tab-btn active" id="tabBtnKanban" onclick="switchTab('kanban')">📋 Workflow Pipeline</button>
+    <button class="tab-btn" id="tabBtnTeam" onclick="switchTab('team')">👥 Team Members</button>
     <button class="tab-btn" id="tabBtnAudit" onclick="switchTab('audit')">🔍 Audit Logs & Compliance</button>
     <button class="tab-btn" id="tabBtnAuth" onclick="switchTab('auth')" style="margin-left: auto;">🏢 Company Portal</button>
   </div>
@@ -154,7 +155,30 @@
     </table>
   </div>
 
-  <!-- TAB 2: AUDIT LOGS -->
+  <!-- TAB 2: TEAM MEMBERS -->
+  <div id="viewTeam" class="card hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
+      <div>
+        <h2>Company Team & User Directory</h2>
+        <p style="color:var(--text-muted); font-size:13px; margin:2px 0 0 0;">Manage users authorized to access this company workspace.</p>
+      </div>
+      <button class="btn-small" onclick="openInviteModal()">+ Invite Team Member</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Full Name</th>
+          <th>Work Email</th>
+          <th>Access Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="teamTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- TAB 3: AUDIT LOGS -->
   <div id="viewAudit" class="card hidden">
     <h2>Enterprise Audit Logs</h2>
     <p style="color:var(--text-muted); font-size:13px; margin-bottom:20px;">Immutable event tracking record for tenant governance and compliance.</p>
@@ -173,7 +197,7 @@
     </table>
   </div>
 
-  <!-- TAB 3: AUTH SECTION (COMPANY PORTAL / LOGIN & REGISTRATION) -->
+  <!-- TAB 4: AUTH SECTION (COMPANY PORTAL / LOGIN & REGISTRATION) -->
   <div id="viewAuth" class="card hidden">
     <div class="grid-2">
       <!-- LOGIN FORM -->
@@ -279,6 +303,39 @@
   </form>
 </div>
 
+<!-- INVITE MEMBER MODAL -->
+<div id="inviteModal" class="card hidden" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:500px; z-index:100; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+  <h3 style="margin-bottom:16px;">Invite Team Member</h3>
+  <form id="inviteForm">
+    <div class="form-group">
+      <label for="inviteName">Full Name</label>
+      <input type="text" id="inviteName" placeholder="e.g. Alex Morgan" required>
+    </div>
+    <div class="form-group">
+      <label for="inviteEmail">Work Email</label>
+      <input type="email" id="inviteEmail" placeholder="alex@acmecorp.com" required>
+    </div>
+    <div class="form-group">
+      <label for="inviteRole">Access Role</label>
+      <select id="inviteRole" required>
+        <option value="Team Member">Team Member</option>
+        <option value="Business Analyst">Business Analyst</option>
+        <option value="Systems Engineer">Systems Engineer</option>
+        <option value="Database Administrator">Database Administrator</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="invitePassword">Temporary Password</label>
+      <input type="password" id="invitePassword" placeholder="••••••••" required minlength="6">
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button type="submit">Add User to Company</button>
+      <button type="button" class="btn-danger" onclick="closeInviteModal()" style="width:auto;">Cancel</button>
+    </div>
+    <div id="inviteError" class="error-msg">User email already exists in system.</div>
+  </form>
+</div>
+
 <script>
   const STORAGE_TASKS = 'nexus_tasks';
   const STORAGE_TENANTS = 'nexus_tenants';
@@ -287,7 +344,8 @@
   function initSeedData() {
     if (!localStorage.getItem(STORAGE_TENANTS)) {
       const defaultTenants = {
-        'admin@apexlogistics.com': { company: 'Apex Logistics Inc.', name: 'David Vance', email: 'admin@apexlogistics.com', password: 'admin123', role: 'Tenant Admin' }
+        'admin@apexlogistics.com': { company: 'Apex Logistics Inc.', name: 'David Vance', email: 'admin@apexlogistics.com', password: 'admin123', role: 'Tenant Admin' },
+        'sarah@apexlogistics.com': { company: 'Apex Logistics Inc.', name: 'Sarah Jenkins', email: 'sarah@apexlogistics.com', password: 'password123', role: 'Business Analyst' }
       };
       localStorage.setItem(STORAGE_TENANTS, JSON.stringify(defaultTenants));
     }
@@ -319,10 +377,12 @@
 
   function switchTab(tabName) {
     document.getElementById('viewKanban').classList.add('hidden');
+    document.getElementById('viewTeam').classList.add('hidden');
     document.getElementById('viewAudit').classList.add('hidden');
     document.getElementById('viewAuth').classList.add('hidden');
 
     document.getElementById('tabBtnKanban').classList.remove('active');
+    document.getElementById('tabBtnTeam').classList.remove('active');
     document.getElementById('tabBtnAudit').classList.remove('active');
     document.getElementById('tabBtnAuth').classList.remove('active');
 
@@ -344,6 +404,10 @@
       document.getElementById('viewKanban').classList.remove('hidden');
       document.getElementById('tabBtnKanban').classList.add('active');
       loadKanbanBoard();
+    } else if (tabName === 'team') {
+      document.getElementById('viewTeam').classList.remove('hidden');
+      document.getElementById('tabBtnTeam').classList.add('active');
+      loadTeamTable();
     } else if (tabName === 'audit') {
       document.getElementById('viewAudit').classList.remove('hidden');
       document.getElementById('tabBtnAudit').classList.add('active');
@@ -354,6 +418,7 @@
   const loginForm = document.getElementById('loginForm');
   const registerForm = document.getElementById('registerForm');
   const taskForm = document.getElementById('taskForm');
+  const inviteForm = document.getElementById('inviteForm');
 
   function toggleAuthMode(mode) {
     if (mode === 'register') {
@@ -467,107 +532,4 @@
         <td><span class="badge ${getBadgeClass(task.status)}">${task.status}</span></td>
         <td>
           <div style="display:flex; gap:8px; align-items:center;">
-            <select onchange="updateTaskStatus(${globalIndex}, this.value)" style="padding:6px; font-size:13px; border-radius:6px;">
-              <option value="Backlog" ${task.status==='Backlog'?'selected':''}>Backlog</option>
-              <option value="In Progress" ${task.status==='In Progress'?'selected':''}>In Progress</option>
-              <option value="In Review" ${task.status==='In Review'?'selected':''}>In Review</option>
-              <option value="Done" ${task.status==='Done'?'selected':''}>Done</option>
-            </select>
-            <button class="btn-small btn-danger" onclick="deleteTask(${globalIndex})">Delete</button>
-          </div>
-        </td>
-      `;
-      tbody.appendChild(row);
-    });
-  }
-
-  function getBadgeClass(status) {
-    if (status === 'In Progress') return 'badge-progress';
-    if (status === 'In Review') return 'badge-review';
-    if (status === 'Done') return 'badge-done';
-    return 'badge-backlog';
-  }
-
-  function openNewTaskModal() { document.getElementById('taskModal').classList.remove('hidden'); }
-  function closeNewTaskModal() { document.getElementById('taskModal').classList.add('hidden'); }
-
-  taskForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const company = sessionStorage.getItem('active_company');
-    const user = sessionStorage.getItem('active_user');
-
-    const title = document.getElementById('taskTitle').value.trim();
-    const role = document.getElementById('taskRole').value;
-    const priority = document.getElementById('taskPriority').value;
-    const desc = document.getElementById('taskDesc').value.trim();
-
-    const allTasks = getTasks();
-    allTasks.push({ id: Date.now(), tenant: company, title, role, priority, status: 'Backlog', desc });
-    localStorage.setItem(STORAGE_TASKS, JSON.stringify(allTasks));
-
-    logAudit(company, user, 'TASK_CREATE', `Created task "${title}" assigned to ${role}`);
-
-    taskForm.reset();
-    closeNewTaskModal();
-    loadKanbanBoard();
-  });
-
-  function updateTaskStatus(globalIndex, newStatus) {
-    const allTasks = getTasks();
-    const task = allTasks[globalIndex];
-    const oldStatus = task.status;
-    task.status = newStatus;
-    localStorage.setItem(STORAGE_TASKS, JSON.stringify(allTasks));
-
-    logAudit(task.tenant, sessionStorage.getItem('active_user'), 'TASK_STATUS_CHANGE', `Transitioned "${task.title}" from ${oldStatus} to ${newStatus}`);
-    loadKanbanBoard();
-  }
-
-  function deleteTask(globalIndex) {
-    if (!confirm("Are you sure you want to delete this task?")) return;
-    const allTasks = getTasks();
-    const task = allTasks[globalIndex];
-    allTasks.splice(globalIndex, 1);
-    localStorage.setItem(STORAGE_TASKS, JSON.stringify(allTasks));
-
-    logAudit(task.tenant, sessionStorage.getItem('active_user'), 'TASK_DELETE', `Deleted task "${task.title}"`);
-    loadKanbanBoard();
-  }
-
-  function loadAuditTable() {
-    const company = sessionStorage.getItem('active_company');
-    const audit = getAudit();
-    const tenantAudit = audit.filter(a => a.tenant === company);
-    const tbody = document.getElementById('auditTableBody');
-    tbody.innerHTML = '';
-
-    if (tenantAudit.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted); text-align:center;">No audit events recorded yet.</td></tr>';
-      return;
-    }
-
-    tenantAudit.forEach(log => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td style="font-size:12px; color:var(--text-muted);">${log.time}</td>
-        <td><strong>${log.tenant}</strong></td>
-        <td>${log.user}</td>
-        <td><span class="badge" style="background:#f3f4f6; color:#374151;">${log.action}</span></td>
-        <td>${log.details}</td>
-      `;
-      tbody.appendChild(row);
-    });
-  }
-
-  // Initial load check
-  const activeUser = sessionStorage.getItem('active_user');
-  updateHeaderAuthButton();
-  if (activeUser) {
-    switchTab('kanban');
-  } else {
-    switchTab('auth');
-  }
-</script>
-
-</body>
-</html>
+            <select onchange="updateTaskStatus(${globalIndex}, this.value)" style="padding:6px; font-size:13px; border
