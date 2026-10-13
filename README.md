@@ -1,33 +1,38 @@
-# nexusflow-workflow-engine
-# NexusFlow ERP & Multi-Tenant Workflow Engine
+# NexusFlow ERP | Enterprise Multi-Tenant Workflow Engine
 
-## 1. Executive Summary & Architecture Overview
-NexusFlow ERP is a multi-tenant, role-based enterprise workflow and task-automation SaaS platform engineered for small-to-medium businesses. The application replaces fragmented spreadsheets and rigid legacy software by providing isolated company workspaces, structured task pipelines, and immutable audit logs.
+**NexusFlow ERP** is a production-grade, multi-tenant enterprise workflow and task automation engine. Built with modern, minimalist architecture, it provides secure tenant isolation, role-based user directory management, real-time Kanban pipeline tracking, and immutable audit logging.
 
-## 2. Technical Stack
-* **Front-End:** Modular HTML5, responsive CSS3 (Grid/Flexbox, custom design tokens), and native ES6+ JavaScript.
-* **State Management & Persistence:** LocalStorage/SessionStorage mapped to structured multi-tenant JSON schemas.
-* **Security & Access Control:** Role-Based Access Control (RBAC) and tenant-isolated session state.
+🌐 **Live Production Deployment:** [NexusFlow Live Portal](https://vaibhavsingh8395.github.io/nexusflow-workflow-engine/)
 
-## 3. Database Schema & Multi-Tenant Data Modeling
-The application utilizes a normalized relational JSON schema supporting multi-tenant isolation:
+---
 
-### Entities:
-1. **Tenants (`nexus_tenants`):**
-   - `company_id` (Primary Key / Company Name)
-   - `admin_email` (Unique String)
-   - `password_hash` (Secured credential reference)
-   - `role` (Tenant Admin / Operator)
-2. **Tasks (`nexus_tasks`):**
-   - `id` (Primary Key / Timestamp)
-   - `tenant` (Foreign Key mapping to Tenant Company)
-   - `title` & `desc` (Task metadata)
-   - `role` (Assigned Department: Business Analyst, Systems Engineer, DBA, Executive)
-   - `priority` (Normal, High, Critical)
-   - `status` (Backlog, In Progress, In Review, Done)
-3. **Audit Trail (`nexus_audit`):**
-   - `timestamp` (ISO datetime)
-   - `tenant` (Tenant isolation key)
-   - `user` (Actor email)
-   - `action` (Event type: `TENANT_REGISTER`, `TASK_CREATE`, `TASK_STATUS_CHANGE`)
-   - `details` (Descriptive audit payload)
+## Key Features
+
+* **Multi-Tenant Architecture:** Isolated company workspaces with secure authentication and data partitioning.
+* **Team & User Directory (`👥 Team Members`):** Company administrators can invite new colleagues by email, assign specialized departmental roles (Business Analyst, Systems Engineer, Database Administrator, Team Member), and manage workspace access.
+* **Operational Task Pipeline (`📋 Workflow Pipeline`):** Real-time Kanban board with instant priority filtering, status transitions (*Backlog*, *In Progress*, *In Review*, *Done*), and live KPI metrics (*Total Tasks*, *In Progress*, *Completed*).
+* **Enterprise Audit Logs (`🔍 Audit Logs & Compliance`):** Immutable event tracking recording every tenant registration, user login, invitation, task creation, and status change for compliance governance.
+* **Modern Minimalist UI:** Sleek, high-contrast typography, soft surface cards, responsive design, and intuitive tabbed navigation.
+
+---
+
+## Getting Started & Testing
+
+1. Access the live application at [NexusFlow Live Portal](https://vaibhavsingh8395.github.io/nexusflow-workflow-engine/).
+2. Log in using the pre-configured enterprise demo tenant credentials:
+   * **Company:** Apex Logistics Inc.
+   * **Email:** `admin@apexlogistics.com`
+   * **Password:** `admin123`
+3. Alternatively, click **"Register a new company tenant"** on the company portal screen to initialize your own custom corporate workspace.
+
+---
+
+## Tech Stack
+* **Front-End:** Vanilla HTML5, CSS3 (Custom CSS Variables, Grid, Flexbox), ES6+ JavaScript.
+* **State Persistence:** Normalized relational schema backed by browser Session/Local Storage.
+* **Hosting:** GitHub Pages CI/CD pipeline.
+
+---
+
+## Documentation
+* Refer to the [User Manual](USER_MANUAL.md) for detailed operational instructions.
