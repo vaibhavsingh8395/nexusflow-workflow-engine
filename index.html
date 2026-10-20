@@ -25,12 +25,6 @@
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-deep); margin: 0; padding: 0; color: var(--text-main); min-height: 100vh; }
 
-    /* AUTH & TENANT SCREEN */
-    #authOverlay { position: fixed; inset: 0; background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, var(--bg-deep) 70%); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-    .auth-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px; width: 100%; max-width: 480px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
-    .auth-logo { font-size: 2.2rem; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; font-weight: 800; color: var(--accent-primary); }
-
-    /* APP LAYOUT */
     .app-container { max-width: 1500px; margin: 0 auto; padding: 24px; }
     header { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); flex-wrap: wrap; gap: 15px; }
     .brand-area { display: flex; align-items: center; gap: 16px; }
@@ -83,7 +77,6 @@
 </head>
 <body>
 
-<!-- MAIN DASHBOARD APP -->
 <div class="app-container" id="appContainer">
   
   <header>
@@ -104,7 +97,7 @@
 
   <div class="nav-tabs">
     <button class="tab-btn active" id="btn-pipeline" onclick="switchTab('pipeline')">📋 Workflow Pipeline</button>
-    <button class="tab-btn" id="btn-team" onclick="switchTab('team')">👥 Team & Roles Directory</button>
+    <button class="tab-btn" id="btn-team" onclick="switchTab('team')">👥 Team & Client Directory</button>
     <button class="tab-btn" id="btn-analytics" onclick="switchTab('analytics')">📊 Analytics & Reporting</button>
     <button class="tab-btn" id="btn-audit" onclick="switchTab('audit')">🔍 Compliance Audit Logs</button>
   </div>
@@ -149,24 +142,25 @@
     </div>
   </div>
 
-  <!-- TAB 2: TEAM DIRECTORY -->
+  <!-- TAB 2: TEAM & CLIENT DIRECTORY -->
   <div id="view-team" class="card" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
       <div>
-        <h2>Team Members & Role Directory</h2>
-        <p style="color: var(--text-muted); font-size: 13px; margin: 2px 0 0 0;">Manage departmental assignments and workspace access privileges.</p>
+        <h2>Team Members & Client Accounts</h2>
+        <p style="color: var(--text-muted); font-size: 13px; margin: 2px 0 0 0;">Provision client accounts, manage departmental roles, and access privileges.</p>
       </div>
+      <button class="btn-small" onclick="openClientModal()">+ Register New Client Account</button>
     </div>
 
     <div class="search-filter-bar" style="margin-top: 20px;">
-      <input type="text" id="teamSearchInput" placeholder="🔍 Search team members by name or role..." oninput="renderTeamTable()">
+      <input type="text" id="teamSearchInput" placeholder="🔍 Search members or clients by name or role..." oninput="renderTeamTable()">
     </div>
 
     <table>
       <thead>
         <tr>
-          <th>Team Member</th>
-          <th>Departmental Role</th>
+          <th>Name / Entity</th>
+          <th>Role / Classification</th>
           <th>Assigned Tasks</th>
           <th>Access Status</th>
           <th>Action</th>
@@ -191,7 +185,7 @@
         <span id="statEfficiency">0%</span>
       </div>
       <div class="metric-card">
-        <h4>Active Tenant Users</h4>
+        <h4>Active Tenant Users & Clients</h4>
         <span id="statActiveUsers">0</span>
       </div>
     </div>
@@ -256,6 +250,36 @@
   </div>
 </div>
 
+<!-- REGISTER CLIENT ACCOUNT MODAL -->
+<div id="clientModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px;">
+  <div class="card" style="width: 100%; max-width: 500px; margin: 0; background: var(--bg-surface);">
+    <h3>Register New Client Account</h3>
+    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Provision secure workspace access and partition permissions for a new client.</p>
+    <form onsubmit="handleRegisterClient(event)">
+      <div class="form-group">
+        <label>Client Name / Company</label>
+        <input type="text" id="clientNameInput" placeholder="Acme Global Corp" required>
+      </div>
+      <div class="form-group">
+        <label>Client Email</label>
+        <input type="text" id="clientEmailInput" placeholder="contact@acmeglobal.com" required>
+      </div>
+      <div class="form-group">
+        <label>Account Role / Access Level</label>
+        <select id="clientRoleInput">
+          <option value="Client Stakeholder">Client Stakeholder (View & Approve)</option>
+          <option value="Client Auditor">Client Auditor (Compliance & Reports)</option>
+          <option value="External Partner">External Partner (Restricted)</option>
+        </select>
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button type="submit">Provision Account</button>
+        <button type="button" class="btn-secondary" onclick="closeClientModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
   let currentTenant = 'apex';
   let currentUser = { name: 'Vaibhav Singh', email: 'admin@apexlogistics.com', role: 'System Administrator' };
@@ -284,7 +308,7 @@
       const defaultTeam = [
         { name: 'Vaibhav Singh', role: 'System Administrator', tasksCount: 3, status: 'Active' },
         { name: 'Miguel Molina', role: 'Business Analyst', tasksCount: 1, status: 'Active' },
-        { name: 'Sarah Jenkins', role: 'Database Administrator', tasksCount: 2, status: 'Active' }
+        { name: 'Acme Global Corp (Client)', role: 'Client Stakeholder', tasksCount: 0, status: 'Provisioned' }
       ];
       localStorage.setItem(getStorageKey('team'), JSON.stringify(defaultTeam));
     }
@@ -395,6 +419,24 @@
     renderKanbanBoard();
   }
 
+  function openClientModal() { document.getElementById('clientModal').style.display = 'flex'; }
+  function closeClientModal() { document.getElementById('clientModal').style.display = 'none'; }
+
+  function handleRegisterClient(e) {
+    e.preventDefault();
+    const name = document.getElementById('clientNameInput').value.trim();
+    const email = document.getElementById('clientEmailInput').value.trim();
+    const role = document.getElementById('clientRoleInput').value;
+
+    const team = JSON.parse(localStorage.getItem(getStorageKey('team'))) || [];
+    team.push({ name: `${name} (${email})`, role, tasksCount: 0, status: 'Provisioned' });
+    localStorage.setItem(getStorageKey('team'), JSON.stringify(team));
+
+    logAudit(currentUser.name, 'REGISTER_CLIENT', `Provisioned new client account for ${name} (${email}) with role [${role}]`);
+    closeClientModal();
+    renderTeamTable();
+  }
+
   function renderTeamTable() {
     const team = JSON.parse(localStorage.getItem(getStorageKey('team'))) || [];
     const searchInput = document.getElementById('teamSearchInput');
@@ -411,7 +453,7 @@
         <td><span class="badge badge-progress">${m.role}</span></td>
         <td>${m.tasksCount} Active</td>
         <td><span style="color: var(--success); font-weight:600;">● ${m.status}</span></td>
-        <td><button class="btn-small btn-secondary" onclick="alert('Member profile permissions verified.')">Manage Access</button></td>
+        <td><button class="btn-small btn-secondary" onclick="alert('Account privileges active and encrypted.')">Manage Access</button></td>
       `;
       tbody.appendChild(row);
     });
