@@ -331,33 +331,50 @@
   }
 
   function initSeedData() {
-    // Always force seed test data if missing or empty
     const taskKey = getStorageKey('tasks');
     const teamKey = getStorageKey('team');
     const auditKey = getStorageKey('audit');
 
+    // Tenant-specific isolated seed data
     if (!localStorage.getItem(taskKey) || JSON.parse(localStorage.getItem(taskKey)).length === 0) {
-      const defaultTasks = [
-        { id: 1, title: 'Deploy customs AI ingestion pipeline', priority: 'High', status: 'progress', assignee: 'Vaibhav Singh' },
-        { id: 2, title: 'Verify OAuth credential exchange', priority: 'Medium', status: 'backlog', assignee: 'Miguel Molina' },
-        { id: 3, title: 'Multi-tenant database migration', priority: 'High', status: 'review', assignee: 'Infrastructure' },
-        { id: 4, title: 'Export compliance verification', priority: 'Low', status: 'done', assignee: 'Audit Lead' }
-      ];
+      let defaultTasks = [];
+      if (currentTenant === 'apex') {
+        defaultTasks = [
+          { id: 1, title: 'Deploy customs AI ingestion pipeline', priority: 'High', status: 'progress', assignee: 'Vaibhav Singh' },
+          { id: 2, title: 'Verify OAuth credential exchange', priority: 'Medium', status: 'backlog', assignee: 'Miguel Molina' },
+          { id: 3, title: 'Multi-tenant database migration', priority: 'High', status: 'review', assignee: 'Infrastructure' }
+        ];
+      } else {
+        defaultTasks = [
+          { id: 101, title: 'CyberPulse Neural firewall configuration', priority: 'High', status: 'progress', assignee: 'Security Lead' },
+          { id: 102, title: 'Encrypt telemetry transit streams', priority: 'High', status: 'backlog', assignee: 'DevOps' },
+          { id: 103, title: 'Zero-trust gateway audit', priority: 'Medium', status: 'done', assignee: 'Compliance Officer' }
+        ];
+      }
       localStorage.setItem(taskKey, JSON.stringify(defaultTasks));
     }
     
     if (!localStorage.getItem(teamKey) || JSON.parse(localStorage.getItem(teamKey)).length === 0) {
-      const defaultTeam = [
-        { name: 'Vaibhav Singh', role: 'System Administrator', tasksCount: 3, status: 'Active' },
-        { name: 'Miguel Molina', role: 'Business Analyst', tasksCount: 1, status: 'Active' },
-        { name: 'Acme Global Corp (Client)', role: 'Client Stakeholder', tasksCount: 0, status: 'Provisioned' }
-      ];
+      let defaultTeam = [];
+      if (currentTenant === 'apex') {
+        defaultTeam = [
+          { name: 'Vaibhav Singh', role: 'System Administrator', tasksCount: 3, status: 'Active' },
+          { name: 'Miguel Molina', role: 'Business Analyst', tasksCount: 1, status: 'Active' },
+          { name: 'Acme Global Corp (Client)', role: 'Client Stakeholder', tasksCount: 0, status: 'Provisioned' }
+        ];
+      } else {
+        defaultTeam = [
+          { name: 'Elena Rostova', role: 'Chief Information Security Officer', tasksCount: 3, status: 'Active' },
+          { name: 'Marcus Vance', role: 'Cloud Architect', tasksCount: 2, status: 'Active' },
+          { name: 'Apex Sentinel Partner', role: 'External Partner', tasksCount: 0, status: 'Provisioned' }
+        ];
+      }
       localStorage.setItem(teamKey, JSON.stringify(defaultTeam));
     }
 
     if (!localStorage.getItem(auditKey) || JSON.parse(localStorage.getItem(auditKey)).length === 0) {
       const defaultAudit = [
-        { time: new Date().toLocaleString(), actor: 'System Architect', action: 'INIT_WORKSPACE', summary: 'Initialized secure enterprise partition with verified test data.' }
+        { time: new Date().toLocaleString(), actor: 'System Architect', action: 'INIT_WORKSPACE', summary: `Initialized secure enterprise partition for [${currentTenant.toUpperCase()}] successfully.` }
       ];
       localStorage.setItem(auditKey, JSON.stringify(defaultAudit));
     }
