@@ -331,27 +331,35 @@
   }
 
   function initSeedData() {
-    if (!localStorage.getItem(getStorageKey('tasks'))) {
+    // Always force seed test data if missing or empty
+    const taskKey = getStorageKey('tasks');
+    const teamKey = getStorageKey('team');
+    const auditKey = getStorageKey('audit');
+
+    if (!localStorage.getItem(taskKey) || JSON.parse(localStorage.getItem(taskKey)).length === 0) {
       const defaultTasks = [
-        { id: 1, title: 'Deploy customs ingestion pipeline', priority: 'High', status: 'progress', assignee: 'Vaibhav Singh' },
-        { id: 2, title: 'Verify OAuth credential exchange', priority: 'Medium', status: 'backlog', assignee: 'Dev Team' },
-        { id: 3, title: 'Multi-tenant database migration', priority: 'High', status: 'review', assignee: 'Infrastructure' }
+        { id: 1, title: 'Deploy customs AI ingestion pipeline', priority: 'High', status: 'progress', assignee: 'Vaibhav Singh' },
+        { id: 2, title: 'Verify OAuth credential exchange', priority: 'Medium', status: 'backlog', assignee: 'Miguel Molina' },
+        { id: 3, title: 'Multi-tenant database migration', priority: 'High', status: 'review', assignee: 'Infrastructure' },
+        { id: 4, title: 'Export compliance verification', priority: 'Low', status: 'done', assignee: 'Audit Lead' }
       ];
-      localStorage.setItem(getStorageKey('tasks'), JSON.stringify(defaultTasks));
+      localStorage.setItem(taskKey, JSON.stringify(defaultTasks));
     }
-    if (!localStorage.getItem(getStorageKey('team'))) {
+    
+    if (!localStorage.getItem(teamKey) || JSON.parse(localStorage.getItem(teamKey)).length === 0) {
       const defaultTeam = [
         { name: 'Vaibhav Singh', role: 'System Administrator', tasksCount: 3, status: 'Active' },
         { name: 'Miguel Molina', role: 'Business Analyst', tasksCount: 1, status: 'Active' },
         { name: 'Acme Global Corp (Client)', role: 'Client Stakeholder', tasksCount: 0, status: 'Provisioned' }
       ];
-      localStorage.setItem(getStorageKey('team'), JSON.stringify(defaultTeam));
+      localStorage.setItem(teamKey, JSON.stringify(defaultTeam));
     }
-    if (!localStorage.getItem(getStorageKey('audit'))) {
+
+    if (!localStorage.getItem(auditKey) || JSON.parse(localStorage.getItem(auditKey)).length === 0) {
       const defaultAudit = [
-        { time: new Date().toLocaleString(), actor: 'System Architect', action: 'INIT_WORKSPACE', summary: 'Initialized secure enterprise partition successfully.' }
+        { time: new Date().toLocaleString(), actor: 'System Architect', action: 'INIT_WORKSPACE', summary: 'Initialized secure enterprise partition with verified test data.' }
       ];
-      localStorage.setItem(getStorageKey('audit'), JSON.stringify(defaultAudit));
+      localStorage.setItem(auditKey, JSON.stringify(defaultAudit));
     }
   }
 
@@ -520,4 +528,52 @@
       let csv = "ID,Title,Priority,Status,Assignee\n";
       tasks.forEach(t => { csv += `"${t.id}","${t.title}","${t.priority}","${t.status}","${t.assignee}"\n`; });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.
+      const url = URL.createObjectURL(blob);
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", url);
+      dlAnchor.setAttribute("download", `nexusflow_${currentTenant}_task_report.csv`);
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+    }
+    logAudit(currentUser.name, 'EXPORT_DATA', `Exported workspace reports in ${format.toUpperCase()} format.`);
+  }
+
+  function renderAuditTable() {
+    const audit = JSON.parse(localStorage.getItem(getStorageKey('audit'))) || [];
+    const tbody = document.getElementById('auditTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    audit.forEach(a => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td style="font-size: 12px; color: var(--text-muted);">${a.time}</td>
+        <td><strong>${a.actor}</strong></td>
+        <td><span class="badge badge-review">${a.action}</span></td>
+        <td style="font-family: monospace; font-size: 12px;">${a.summary}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function exportAuditCSV() {
+    const audit = JSON.parse(localStorage.getItem(getStorageKey('audit'))) || [];
+    let csv = "Timestamp,Actor,Action,Summary\n";
+    audit.forEach(a => { csv += `"${a.time}","${a.actor}","${a.action}","${a.summary}"\n`; });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute("href", url);
+    dlAnchor.setAttribute("download", `nexusflow_${currentTenant}_compliance_audit.csv`);
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+  }
+
+  // Initial startup load
+  initSeedData();
+  switchTab('pipeline');
+</script>
+
+</body>
+</html>
