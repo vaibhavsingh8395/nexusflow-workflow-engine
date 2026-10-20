@@ -95,7 +95,6 @@
         <select id="tenantSelect" onchange="handleTenantPreset()">
           <option value="apex">Apex Logistics Inc. (Demo Tenant)</option>
           <option value="cyber">CyberPulse Systems</option>
-          <option value="custom">✨ Register New Custom Tenant...</option>
         </select>
       </div>
       <div class="form-group">
@@ -123,8 +122,7 @@
       </div>
     </div>
     <div style="display: flex; gap: 12px; align-items: center;">
-      <button class="tab-btn btn-secondary" onclick="switchWorkspaceModal()" style="width: auto; padding: 8px 16px;">🏢 Switch Tenant</button>
-      <button class="tab-btn btn-secondary" onclick="logoutSession()" style="width: auto; padding: 8px 16px; color: var(--danger);">🔒 Lock Session</button>
+      <button class="tab-btn btn-secondary" onclick="logoutSession()" style="width: auto; padding: 8px 16px;">🏢 Switch Tenant</button>
     </div>
   </header>
 
@@ -182,7 +180,6 @@
         <h2>Team Members & Role Directory</h2>
         <p style="color: var(--text-muted); font-size: 13px; margin: 2px 0 0 0;">Manage departmental assignments and workspace access privileges.</p>
       </div>
-      <button class="btn-small" onclick="openInviteModal()">+ Invite Member</button>
     </div>
 
     <div class="search-filter-bar" style="margin-top: 20px;">
@@ -277,7 +274,7 @@
       </div>
       <div style="display: flex; gap: 12px; margin-top: 24px;">
         <button type="submit">Create Task</button>
-        type="button" class="btn-secondary" onclick="closeTaskModal()">Cancel</button>
+        <button type="button" class="btn-secondary" onclick="closeTaskModal()">Cancel</button>
       </div>
     </form>
   </div>
@@ -291,32 +288,29 @@
     const val = document.getElementById('tenantSelect').value;
     if (val === 'cyber') {
       document.getElementById('authEmail').value = 'admin@cyberpulse.io';
-    } else if (val === 'apex') {
+    } else {
       document.getElementById('authEmail').value = 'admin@apexlogistics.com';
     }
   }
 
   function authenticateTenant() {
     currentTenant = document.getElementById('tenantSelect').value;
-    const email = document.getElementById('authEmail').value;
-    currentUser.email = email;
+    currentUser.email = document.getElementById('authEmail').value;
     
     document.getElementById('headerTenantName').textContent = currentTenant === 'cyber' ? 'CyberPulse Systems' : 'Apex Logistics Inc.';
+    
+    // Ensure data is seeded before hiding overlay
+    initSeedData();
+
     document.getElementById('authOverlay').style.display = 'none';
     document.getElementById('appContainer').style.display = 'block';
 
-    initSeedData();
     switchTab('pipeline');
-    logAudit(currentUser.name, 'TENANT_LOGIN', `Authenticated workspace session for ${currentUser.email}`);
   }
 
   function logoutSession() {
     document.getElementById('authOverlay').style.display = 'flex';
     document.getElementById('appContainer').style.display = 'none';
-  }
-
-  function switchWorkspaceModal() {
-    logoutSession();
   }
 
   function getStorageKey(suffix) {
@@ -357,8 +351,10 @@
 
   function switchTab(tabName) {
     ['pipeline', 'team', 'analytics', 'audit'].forEach(t => {
-      document.getElementById('view-' + t).style.display = (t === tabName) ? 'block' : 'none';
-      document.getElementById('btn-' + t).classList.toggle('active', t === tabName);
+      const el = document.getElementById('view-' + t);
+      const btn = document.getElementById('btn-' + t);
+      if (el) el.style.display = (t === tabName) ? 'block' : 'none';
+      if (btn) btn.classList.toggle('active', t === tabName);
     });
 
     if (tabName === 'pipeline') renderKanbanBoard();
@@ -369,13 +365,19 @@
 
   function renderKanbanBoard() {
     const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
-    const query = document.getElementById('taskSearchInput').value.toLowerCase();
-    const priorityFilter = document.getElementById('taskPriorityFilter').value;
+    const searchInput = document.getElementById('taskSearchInput');
+    const prioritySelect = document.getElementById('taskPriorityFilter');
+    
+    const query = searchInput ? searchInput.value.toLowerCase() : '';
+    const priorityFilter = prioritySelect ? prioritySelect.value : '';
 
     const cols = { backlog: 'col-backlog', progress: 'col-progress', review: 'col-review', done: 'col-done' };
     const counts = { backlog: 0, progress: 0, review: 0, done: 0 };
 
-    Object.values(cols).forEach(id => document.getElementById(id).innerHTML = '');
+    Object.values(cols).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '';
+    });
 
     tasks.forEach(t => {
       if (query && !t.title.toLowerCase().includes(query) && !t.assignee.toLowerCase().includes(query)) return;
@@ -395,13 +397,14 @@
           ${t.status !== 'done' ? `<button class="btn-small" onclick="moveTask(${t.id}, 'next')" style="flex:1;">Advance →</button>` : ''}
         </div>
       `;
-      document.getElementById(cols[t.status]).appendChild(card);
+      const targetCol = document.getElementById(cols[t.status]);
+      if (targetCol) targetCol.appendChild(card);
     });
 
-    document.getElementById('count-backlog').textContent = counts.backlog;
-    document.getElementById('count-progress').textContent = counts.progress;
-    document.getElementById('count-review').textContent = counts.review;
-    document.getElementById('count-done').textContent = counts.done;
+    if (document.getElementById('count-backlog')) document.getElementById('count-backlog').textContent = counts.backlog;
+    if (document.getElementById('count-progress')) document.getElementById('count-progress').textContent = counts.progress;
+    if (document.getElementById('count-review')) document.getElementById('count-review').textContent = counts.review;
+    if (document.getElementById('count-done')) document.getElementById('count-done').textContent = counts.done;
   }
 
   function moveTask(id, direction) {
@@ -439,79 +442,4 @@
   }
 
   function renderTeamTable() {
-    const team = JSON.parse(localStorage.getItem(getStorageKey('team'))) || [];
-    const query = document.getElementById('teamSearchInput').value.toLowerCase();
-    const tbody = document.getElementById('teamTableBody');
-    tbody.innerHTML = '';
-
-    team.forEach(m => {
-      if (query && !m.name.toLowerCase().includes(query) && !m.role.toLowerCase().includes(query)) return;
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td><strong>${m.name}</strong></td>
-        <td><span class="badge badge-progress">${m.role}</span></td>
-        <td>${m.tasksCount} Active</td>
-        <td><span style="color: var(--success); font-weight:600;">● ${m.status}</span></td>
-        <td><button class="btn-small btn-secondary" onclick="alert('Member profile permissions verified.')">Manage Access</button></td>
-      `;
-      tbody.appendChild(row);
-    });
-  }
-
-  function updateAnalytics() {
-    const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
-    const team = JSON.parse(localStorage.getItem(getStorageKey('team'))) || [];
-    const done = tasks.filter(t => t.status === 'done').length;
-    const eff = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
-
-    document.getElementById('statTotalTasks').textContent = tasks.length;
-    document.getElementById('statEfficiency').textContent = eff + '%';
-    document.getElementById('statActiveUsers').textContent = team.length;
-  }
-
-  function exportData(format) {
-    const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
-    if (format === 'json') {
-      const audit = JSON.parse(localStorage.getItem(getStorageKey('audit'))) || [];
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ tenant: currentTenant, tasks, audit }, null, 2));
-      const dlAnchor = document.createElement('a');
-      dlAnchor.setAttribute("href", dataStr);
-      dlAnchor.setAttribute("download", `nexusflow_${currentTenant}_audit_package.json`);
-      document.body.appendChild(dlAnchor);
-      dlAnchor.click();
-      dlAnchor.remove();
-    } else {
-      let csv = "ID,Title,Priority,Status,Assignee\n";
-      tasks.forEach(t => { csv += `"${t.id}","${t.title}","${t.priority}","${t.status}","${t.assignee}"\n`; });
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const dlAnchor = document.createElement('a');
-      dlAnchor.setAttribute("href", url);
-      dlAnchor.setAttribute("download", `nexusflow_${currentTenant}_task_report.csv`);
-      document.body.appendChild(dlAnchor);
-      dlAnchor.click();
-      dlAnchor.remove();
-    }
-    logAudit(currentUser.name, 'EXPORT_DATA', `Exported workspace reports in ${format.toUpperCase()} format.`);
-  }
-
-  function renderAuditTable() {
-    const audit = JSON.parse(localStorage.getItem(getStorageKey('audit'))) || [];
-    const tbody = document.getElementById('auditTableBody');
-    tbody.innerHTML = '';
-    audit.forEach(a => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td style="font-size: 12px; color: var(--text-muted);">${a.time}</td>
-        <td><strong>${a.actor}</strong></td>
-        <td><span class="badge badge-review">${a.action}</span></td>
-        <td style="font-family: monospace; font-size: 12px;">${a.summary}</td>
-      `;
-      tbody.appendChild(row);
-    });
-  }
-
-  function exportAuditCSV() {
-    const audit = JSON.parse(localStorage.getItem(getStorageKey('audit'))) || [];
-    let csv = "Timestamp,Actor,Action,Summary\n";
-    audit.forEach(a => { csv += `"${a.time}","${a.actor
+    const
