@@ -30,7 +30,7 @@
     .brand-area { display: flex; align-items: center; gap: 16px; }
     .logo-badge { background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple)); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; font-weight: bold; box-shadow: 0 0 15px var(--accent-glow); }
     
-    /* STRICT HORIZONTAL TABS CONTAINER */
+    /* HORIZONTAL NAVIGATION TABS */
     .nav-tabs { 
       display: flex; 
       flex-direction: row; 
@@ -69,6 +69,18 @@
     button:hover { opacity: 0.9; }
     .btn-secondary { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); box-shadow: none; }
     .btn-small { padding: 6px 14px; font-size: 12px; width: auto !important; display: inline-block !important; }
+
+    /* MODAL OVERLAY */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
 
     /* KANBAN BOARD */
     .kanban-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 20px; }
@@ -245,7 +257,7 @@
 </div>
 
 <!-- NEW TASK MODAL -->
-<div id="taskModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px;">
+<div id="taskModal" class="modal-overlay">
   <div class="card" style="width: 100%; max-width: 500px; margin: 0; background: var(--bg-surface);">
     <h3>Initialize New Task</h3>
     <form onsubmit="handleCreateTask(event)">
@@ -274,7 +286,7 @@
 </div>
 
 <!-- REGISTER CLIENT ACCOUNT MODAL -->
-<div id="clientModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px;">
+<div id="clientModal" class="modal-overlay">
   <div class="card" style="width: 100%; max-width: 500px; margin: 0; background: var(--bg-surface);">
     <h3>Register New Client Account</h3>
     <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Provision secure workspace access and partition permissions for a new client.</p>
@@ -428,4 +440,84 @@
   function closeTaskModal() { document.getElementById('taskModal').style.display = 'none'; }
 
   function handleCreateTask(e) {
-    e.
+    e.preventDefault();
+    const title = document.getElementById('taskTitleInput').value.trim();
+    const priority = document.getElementById('taskPriorityInput').value;
+    const assignee = document.getElementById('taskAssigneeInput').value.trim();
+
+    const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
+    tasks.push({ id: Date.now(), title, priority, status: 'backlog', assignee });
+    localStorage.setItem(getStorageKey('tasks'), JSON.stringify(tasks));
+
+    logAudit(currentUser.name, 'CREATE_TASK', `Created task "${title}" assigned to ${assignee}`);
+    closeTaskModal();
+    renderKanbanBoard();
+  }
+
+  function openClientModal() { document.getElementById('clientModal').style.display = 'flex'; }
+  function closeClientModal() { document.getElementById('clientModal').style.display = 'none'; }
+
+  function handleRegisterClient(e) {
+    e.preventDefault();
+    const name = document.getElementById('clientNameInput').value.trim();
+    const email = document.getElementById('clientEmailInput').value.trim();
+    const role = document.getElementById('clientRoleInput').value;
+
+    const team = JSON.parse(localStorage.getItem(getStorageKey('team'))) || [];
+    team.push({ name: `${name} (${email})`, role, tasksCount: 0, status: 'Provisioned' });
+    localStorage.setItem(getStorageKey('team'), JSON.stringify(team));
+
+    logAudit(currentUser.name, 'REGISTER_CLIENT', `Provisioned new client account for ${name} (${email}) with role [${role}]`);
+    closeClientModal();
+    renderTeamTable();
+  }
+
+  function renderTeamTable() {
+    const team = JSON.parse(localStorage.getItem(getStorageKey('team'))) || [];
+    const searchInput = document.getElementById('teamSearchInput');
+    const query = searchInput ? searchInput.value.toLowerCase() : '';
+    const tbody = document.getElementById('teamTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    team.forEach(m => {
+      if (query && !m.name.toLowerCase().includes(query) && !m.role.toLowerCase().includes(query)) return;
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${m.name}</strong></td>
+        <td><span class="badge badge-progress">${m.role}</span></td>
+        <td>${m.tasksCount} Active</td>
+        <td><span style="color: var(--success); font-weight:600;">● ${m.status}</span></td>
+        <td><button class="btn-small btn-secondary" onclick="alert('Account privileges active and encrypted.')">Manage Access</button></td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function updateAnalytics() {
+    const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
+    const team = JSON.parse(localStorage.getItem(getStorageKey('team'))) || [];
+    const done = tasks.filter(t => t.status === 'done').length;
+    const eff = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
+
+    if (document.getElementById('statTotalTasks')) document.getElementById('statTotalTasks').textContent = tasks.length;
+    if (document.getElementById('statEfficiency')) document.getElementById('statEfficiency').textContent = eff + '%';
+    if (document.getElementById('statActiveUsers')) document.getElementById('statActiveUsers').textContent = team.length;
+  }
+
+  function exportData(format) {
+    const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
+    if (format === 'json') {
+      const audit = JSON.parse(localStorage.getItem(getStorageKey('audit'))) || [];
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ tenant: currentTenant, tasks, audit }, null, 2));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", `nexusflow_${currentTenant}_audit_package.json`);
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+    } else {
+      let csv = "ID,Title,Priority,Status,Assignee\n";
+      tasks.forEach(t => { csv += `"${t.id}","${t.title}","${t.priority}","${t.status}","${t.assignee}"\n`; });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.
