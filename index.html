@@ -31,7 +31,7 @@
     .auth-logo { font-size: 2.2rem; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; font-weight: 800; color: var(--accent-primary); }
 
     /* APP LAYOUT */
-    .app-container { display: none; max-width: 1500px; margin: 0 auto; padding: 24px; }
+    .app-container { max-width: 1500px; margin: 0 auto; padding: 24px; }
     header { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); flex-wrap: wrap; gap: 15px; }
     .brand-area { display: flex; align-items: center; gap: 16px; }
     .logo-badge { background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple)); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; font-weight: bold; box-shadow: 0 0 15px var(--accent-glow); }
@@ -83,33 +83,6 @@
 </head>
 <body>
 
-<!-- TENANT AUTH & WORKSPACE SELECTOR -->
-<div id="authOverlay">
-  <div class="auth-card">
-    <div class="auth-logo">⚡ NexusFlow</div>
-    <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem;">Autonomous Enterprise Multi-Tenant Workflow & ERP Engine</p>
-    
-    <div id="loginView">
-      <div class="form-group">
-        <label>Company Tenant</label>
-        <select id="tenantSelect" onchange="handleTenantPreset()">
-          <option value="apex">Apex Logistics Inc. (Demo Tenant)</option>
-          <option value="cyber">CyberPulse Systems</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Admin Email</label>
-        <input type="text" id="authEmail" value="admin@apexlogistics.com">
-      </div>
-      <div class="form-group">
-        <label>Secure Key / Password</label>
-        <input type="password" id="authPass" value="admin123">
-      </div>
-      <button onclick="authenticateTenant()">Initialize Workspace Session →</button>
-    </div>
-  </div>
-</div>
-
 <!-- MAIN DASHBOARD APP -->
 <div class="app-container" id="appContainer">
   
@@ -122,7 +95,10 @@
       </div>
     </div>
     <div style="display: flex; gap: 12px; align-items: center;">
-      <button class="tab-btn btn-secondary" onclick="logoutSession()" style="width: auto; padding: 8px 16px;">🏢 Switch Tenant</button>
+      <select id="tenantSelect" onchange="switchTenantPreset()" style="padding: 8px 12px; width: auto; font-size: 13px;">
+        <option value="apex">Tenant: Apex Logistics</option>
+        <option value="cyber">Tenant: CyberPulse Systems</option>
+      </select>
     </div>
   </header>
 
@@ -284,33 +260,11 @@
   let currentTenant = 'apex';
   let currentUser = { name: 'Vaibhav Singh', email: 'admin@apexlogistics.com', role: 'System Administrator' };
 
-  function handleTenantPreset() {
-    const val = document.getElementById('tenantSelect').value;
-    if (val === 'cyber') {
-      document.getElementById('authEmail').value = 'admin@cyberpulse.io';
-    } else {
-      document.getElementById('authEmail').value = 'admin@apexlogistics.com';
-    }
-  }
-
-  function authenticateTenant() {
+  function switchTenantPreset() {
     currentTenant = document.getElementById('tenantSelect').value;
-    currentUser.email = document.getElementById('authEmail').value;
-    
     document.getElementById('headerTenantName').textContent = currentTenant === 'cyber' ? 'CyberPulse Systems' : 'Apex Logistics Inc.';
-    
-    // Ensure data is seeded before hiding overlay
     initSeedData();
-
-    document.getElementById('authOverlay').style.display = 'none';
-    document.getElementById('appContainer').style.display = 'block';
-
     switchTab('pipeline');
-  }
-
-  function logoutSession() {
-    document.getElementById('authOverlay').style.display = 'flex';
-    document.getElementById('appContainer').style.display = 'none';
   }
 
   function getStorageKey(suffix) {
@@ -442,4 +396,99 @@
   }
 
   function renderTeamTable() {
-    const
+    const team = JSON.parse(localStorage.getItem(getStorageKey('team'))) || [];
+    const searchInput = document.getElementById('teamSearchInput');
+    const query = searchInput ? searchInput.value.toLowerCase() : '';
+    const tbody = document.getElementById('teamTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    team.forEach(m => {
+      if (query && !m.name.toLowerCase().includes(query) && !m.role.toLowerCase().includes(query)) return;
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${m.name}</strong></td>
+        <td><span class="badge badge-progress">${m.role}</span></td>
+        <td>${m.tasksCount} Active</td>
+        <td><span style="color: var(--success); font-weight:600;">● ${m.status}</span></td>
+        <td><button class="btn-small btn-secondary" onclick="alert('Member profile permissions verified.')">Manage Access</button></td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function updateAnalytics() {
+    const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
+    const team = JSON.parse(localStorage.getItem(getStorageKey('team'))) || [];
+    const done = tasks.filter(t => t.status === 'done').length;
+    const eff = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
+
+    if (document.getElementById('statTotalTasks')) document.getElementById('statTotalTasks').textContent = tasks.length;
+    if (document.getElementById('statEfficiency')) document.getElementById('statEfficiency').textContent = eff + '%';
+    if (document.getElementById('statActiveUsers')) document.getElementById('statActiveUsers').textContent = team.length;
+  }
+
+  function exportData(format) {
+    const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
+    if (format === 'json') {
+      const audit = JSON.parse(localStorage.getItem(getStorageKey('audit'))) || [];
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ tenant: currentTenant, tasks, audit }, null, 2));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", `nexusflow_${currentTenant}_audit_package.json`);
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+    } else {
+      let csv = "ID,Title,Priority,Status,Assignee\n";
+      tasks.forEach(t => { csv += `"${t.id}","${t.title}","${t.priority}","${t.status}","${t.assignee}"\n`; });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", url);
+      dlAnchor.setAttribute("download", `nexusflow_${currentTenant}_task_report.csv`);
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+    }
+    logAudit(currentUser.name, 'EXPORT_DATA', `Exported workspace reports in ${format.toUpperCase()} format.`);
+  }
+
+  function renderAuditTable() {
+    const audit = JSON.parse(localStorage.getItem(getStorageKey('audit'))) || [];
+    const tbody = document.getElementById('auditTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    audit.forEach(a => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td style="font-size: 12px; color: var(--text-muted);">${a.time}</td>
+        <td><strong>${a.actor}</strong></td>
+        <td><span class="badge badge-review">${a.action}</span></td>
+        <td style="font-family: monospace; font-size: 12px;">${a.summary}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function exportAuditCSV() {
+    const audit = JSON.parse(localStorage.getItem(getStorageKey('audit'))) || [];
+    let csv = "Timestamp,Actor,Action,Summary\n";
+    audit.forEach(a => { csv += `"${a.time}","${a.actor}","${a.action}","${a.summary}"\n`; });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute("href", url);
+    dlAnchor.setAttribute("download", `nexusflow_${currentTenant}_compliance_audit.csv`);
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+  }
+
+  // Initial startup load
+  initSeedData();
+  switchTab('pipeline');
+</script>
+
+</body>
+</html>
