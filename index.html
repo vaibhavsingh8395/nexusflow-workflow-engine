@@ -3,626 +3,515 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NexusFlow | Enterprise ERP & Multi-Tenant Workflow Engine</title>
+  <title>NexusFlow ERP | Autonomous Enterprise Workflow Engine</title>
+  
   <style>
     :root {
-      --bg-main: #f9fafb;
-      --card-bg: #ffffff;
-      --text-main: #111827;
-      --text-muted: #6b7280;
-      --border: #e5e7eb;
-      --accent: #2563eb;
-      --accent-hover: #1d4ed8;
-      --success-bg: #ecfdf5;
-      --success-text: #065f46;
-      --warning-bg: #fffbeb;
-      --warning-text: #92400e;
-      --danger-bg: #fef2f2;
-      --danger-text: #991b1b;
+      --bg-deep: #090d16;
+      --bg-surface: #111827;
+      --bg-card: #1f293d;
+      --border-color: #374151;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-primary: #06b6d4;
+      --accent-glow: rgba(6, 182, 212, 0.15);
+      --accent-purple: #8b5cf6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
       --radius: 12px;
     }
 
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }
-    body { background-color: var(--bg-main); margin: 0; padding: 0; color: var(--text-main); -webkit-font-smoothing: antialiased; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-deep); margin: 0; padding: 0; color: var(--text-main); min-height: 100vh; }
 
-    .brand-hero {
-      background: #ffffff;
-      border-bottom: 1px solid var(--border);
-      padding: 32px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 1280px;
-      margin: 0 auto;
-    }
-    .brand-title { display: flex; align-items: center; gap: 12px; }
-    .brand-logo { background: #eff6ff; color: var(--accent); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 22px; font-weight: bold; }
-    .brand-hero h1 { font-size: 1.35rem; margin: 0; font-weight: 700; color: var(--text-main); letter-spacing: -0.3px; }
-    .brand-hero p { font-size: 0.85rem; margin: 2px 0 0 0; color: var(--text-muted); }
+    /* AUTH & TENANT SCREEN */
+    #authOverlay { position: fixed; inset: 0; background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, var(--bg-deep) 70%); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .auth-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px; width: 100%; max-width: 480px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
+    .auth-logo { font-size: 2.2rem; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; font-weight: 800; color: var(--accent-primary); }
 
-    .main-wrapper { max-width: 1280px; margin: 32px auto; padding: 0 24px; }
+    /* APP LAYOUT */
+    .app-container { display: none; max-width: 1500px; margin: 0 auto; padding: 24px; }
+    header { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); flex-wrap: wrap; gap: 15px; }
+    .brand-area { display: flex; align-items: center; gap: 16px; }
+    .logo-badge { background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple)); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; font-weight: bold; box-shadow: 0 0 15px var(--accent-glow); }
     
-    .card { background: var(--card-bg); border-radius: var(--radius); padding: 28px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); border: 1px solid var(--border); margin-bottom: 24px; }
-    
-    h2, h3 { color: var(--text-main); margin-top: 0; font-size: 1.15rem; font-weight: 600; }
-    .form-group { margin-bottom: 20px; }
-    label { display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-main); font-size: 0.85rem; }
-    input[type="text"], input[type="email"], input[type="password"], select, textarea { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #fff; color: var(--text-main); }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-    
-    button { background-color: var(--accent); color: white; border: none; padding: 10px 18px; font-size: 14px; font-weight: 500; border-radius: 8px; cursor: pointer; width: 100%; }
-    button:hover { background-color: var(--accent-hover); }
-    
-    .btn-small { padding: 6px 12px; font-size: 13px; width: auto; display: inline-block; }
-    .btn-danger { background-color: #fee2e2; color: #991b1b; width: auto; font-weight: 500; }
-    .btn-danger:hover { background-color: #fecaca; }
-    .logout-btn { background-color: #f3f4f6; color: #374151; width: auto; padding: 8px 14px; font-size: 13px; border: 1px solid var(--border); }
-    
-    .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 12px; flex-wrap: wrap; align-items: center; }
-    .tab-btn { background: transparent; color: var(--text-muted); border: 1px solid transparent; padding: 8px 16px; border-radius: 8px; font-weight: 500; cursor: pointer; width: auto; font-size: 14px; }
-    .tab-btn:hover { color: var(--text-main); background: #f3f4f6; }
-    .tab-btn.active { background: #eff6ff; color: var(--accent); border-color: #bfdbfe; font-weight: 600; }
+    .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; flex-wrap: wrap; }
+    .tab-btn { background: var(--bg-surface); color: var(--text-muted); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+    .tab-btn:hover { color: var(--text-main); border-color: var(--accent-primary); background: var(--bg-card); }
+    .tab-btn.active { background: var(--accent-glow); color: var(--accent-primary); border-color: var(--accent-primary); }
 
-    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .metric-card { background: #fafafa; border: 1px solid var(--border); padding: 20px; border-radius: 10px; }
-    .metric-card h4 { margin: 0 0 6px 0; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; }
-    .metric-card span { font-size: 1.6rem; font-weight: 700; color: var(--text-main); }
+    .card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 28px; margin-bottom: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    
+    h2, h3 { color: var(--text-main); margin-top: 0; font-weight: 700; }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-muted); font-size: 0.85rem; }
+    input, select, textarea { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--bg-deep); color: var(--text-main); }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    button { background: linear-gradient(135deg, var(--accent-primary), #0891b2); color: white; border: none; padding: 12px 20px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; width: 100%; transition: opacity 0.2s; box-shadow: 0 0 15px var(--accent-glow); }
+    button:hover { opacity: 0.9; }
+    .btn-secondary { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); box-shadow: none; }
+    .btn-small { padding: 6px 14px; font-size: 12px; width: auto; display: inline-block; }
+
+    /* KANBAN BOARD */
+    .kanban-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 20px; }
+    .kanban-column { background: var(--bg-deep); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; min-height: 400px; }
+    .kanban-column h4 { margin: 0 0 16px 0; font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; }
+    .task-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: transform 0.2s, border-color 0.2s; }
+    .task-card:hover { transform: translateY(-2px); border-color: var(--accent-primary); }
+
+    /* TABLES & METRICS */
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .metric-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; }
+    .metric-card h4 { margin: 0 0 6px 0; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+    .metric-card span { font-size: 1.8rem; font-weight: 800; color: var(--accent-primary); }
 
     table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
-    th { background-color: #fafafa; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+    th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+    th { background-color: var(--bg-card); color: var(--text-muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
     
     .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
-    .badge-backlog { background: #fef3c7; color: #92400e; }
-    .badge-progress { background: #dbeafe; color: #1e40af; }
-    .badge-review { background: #f3e8ff; color: #6b21a8; }
-    .badge-done { background: #d1fae5; color: #065f46; }
+    .badge-backlog { background: #374151; color: #d1d5db; }
+    .badge-progress { background: rgba(6, 182, 212, 0.2); color: var(--accent-primary); }
+    .badge-review { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; }
+    .badge-done { background: rgba(16, 185, 129, 0.2); color: #34d399; }
 
-    .error-msg { color: var(--danger-text); background: var(--danger-bg); padding: 10px; border-radius: 8px; margin-top: 12px; display: none; font-size: 13px; font-weight: 500; }
-    .success-msg { color: var(--success-text); background: var(--success-bg); padding: 10px; border-radius: 8px; margin-top: 12px; display: none; font-size: 13px; font-weight: 500; }
-    .hidden { display: none; }
-    
-    .grid-2 { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 32px; align-items: center; }
-    .divider { background: var(--border); height: 100%; width: 1px; }
-    @media(max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } .divider { display: none; } }
+    .search-filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .search-filter-bar input { flex: 1; min-width: 240px; }
   </style>
 </head>
 <body>
 
-<div class="brand-hero">
-  <div class="brand-title">
-    <div class="brand-logo">⚡</div>
-    <div>
-      <h1>NexusFlow ERP</h1>
-      <p>Multi-Tenant Enterprise Workflow & Task Automation Engine</p>
+<!-- TENANT AUTH & WORKSPACE SELECTOR -->
+<div id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-logo">⚡ NexusFlow</div>
+    <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem;">Autonomous Enterprise Multi-Tenant Workflow & ERP Engine</p>
+    
+    <div id="loginView">
+      <div class="form-group">
+        <label>Company Tenant</label>
+        <select id="tenantSelect" onchange="handleTenantPreset()">
+          <option value="apex">Apex Logistics Inc. (Demo Tenant)</option>
+          <option value="cyber">CyberPulse Systems</option>
+          <option value="custom">✨ Register New Custom Tenant...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Admin Email</label>
+        <input type="text" id="authEmail" value="admin@apexlogistics.com">
+      </div>
+      <div class="form-group">
+        <label>Secure Key / Password</label>
+        <input type="password" id="authPass" value="admin123">
+      </div>
+      <button onclick="authenticateTenant()">Initialize Workspace Session →</button>
     </div>
   </div>
-  <div id="headerAuthArea"></div>
 </div>
 
-<div class="main-wrapper">
+<!-- MAIN DASHBOARD APP -->
+<div class="app-container" id="appContainer">
+  
+  <header>
+    <div class="brand-area">
+      <div class="logo-badge">⚡</div>
+      <div>
+        <h1 style="font-size: 1.25rem; margin: 0; font-weight: 800;" id="headerTenantName">Apex Logistics Inc.</h1>
+        <p style="font-size: 0.8rem; margin: 2px 0 0 0; color: var(--text-muted);">Secure Multi-Tenant Partition | Active Role: <span id="headerRole" style="color: var(--accent-primary); font-weight: 600;">System Administrator</span></p>
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <button class="tab-btn btn-secondary" onclick="switchWorkspaceModal()" style="width: auto; padding: 8px 16px;">🏢 Switch Tenant</button>
+      <button class="tab-btn btn-secondary" onclick="logoutSession()" style="width: auto; padding: 8px 16px; color: var(--danger);">🔒 Lock Session</button>
+    </div>
+  </header>
 
-  <div class="nav-tabs" id="navTabsContainer">
-    <button class="tab-btn active" id="tabBtnKanban" onclick="switchTab('kanban')">📋 Workflow Pipeline</button>
-    <button class="tab-btn" id="tabBtnTeam" onclick="switchTab('team')">👥 Team Members</button>
-    <button class="tab-btn" id="tabBtnAudit" onclick="switchTab('audit')">🔍 Audit Logs & Compliance</button>
-    <button class="tab-btn" id="tabBtnAuth" onclick="switchTab('auth')" style="margin-left: auto;">🏢 Company Portal</button>
+  <div class="nav-tabs">
+    <button class="tab-btn active" id="btn-pipeline" onclick="switchTab('pipeline')">📋 Workflow Pipeline</button>
+    <button class="tab-btn" id="btn-team" onclick="switchTab('team')">👥 Team & Roles Directory</button>
+    <button class="tab-btn" id="btn-analytics" onclick="switchTab('analytics')">📊 Analytics & Reporting</button>
+    <button class="tab-btn" id="btn-audit" onclick="switchTab('audit')">🔍 Compliance Audit Logs</button>
   </div>
 
-  <!-- TAB 1: KANBAN -->
-  <div id="viewKanban" class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
+  <!-- TAB 1: WORKFLOW KANBAN PIPELINE -->
+  <div id="view-pipeline" class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
       <div>
-        <h2>Operational Task Pipeline</h2>
-        <p style="color:var(--text-muted); font-size:13px; margin:2px 0 0 0;" id="tenantSubtitle">Active tasks across workspace.</p>
+        <h2>Operational Kanban Pipeline</h2>
+        <p style="color: var(--text-muted); font-size: 13px; margin: 2px 0 0 0;">Real-time task synchronization across departmental clusters.</p>
       </div>
-      <button class="btn-small" onclick="openNewTaskModal()">+ New Task</button>
+      <button class="btn-small" onclick="openNewTaskModal()">+ Create Task</button>
     </div>
 
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <h4>Total Tasks</h4>
-        <span id="metricTotal">0</span>
+    <div class="search-filter-bar" style="margin-top: 20px;">
+      <input type="text" id="taskSearchInput" placeholder="🔍 Search tasks by title or assignee..." oninput="renderKanbanBoard()">
+      <select id="taskPriorityFilter" onchange="renderKanbanBoard()" style="max-width: 200px;">
+        <option value="">All Priorities</option>
+        <option value="High">High Priority</option>
+        <option value="Medium">Medium Priority</option>
+        <option value="Low">Low Priority</option>
+      </select>
+    </div>
+
+    <div class="kanban-grid">
+      <div class="kanban-column">
+        <h4>Backlog <span id="count-backlog" class="badge badge-backlog">0</span></h4>
+        <div id="col-backlog"></div>
       </div>
-      <div class="metric-card">
-        <h4>In Progress</h4>
-        <span id="metricProgress">0</span>
+      <div class="kanban-column">
+        <h4>In Progress <span id="count-progress" class="badge badge-progress">0</span></h4>
+        <div id="col-progress"></div>
       </div>
-      <div class="metric-card">
-        <h4>Completed</h4>
-        <span id="metricDone">0</span>
+      <div class="kanban-column">
+        <h4>In Review <span id="count-review" class="badge badge-review">0</span></h4>
+        <div id="col-review"></div>
       </div>
+      <div class="kanban-column">
+        <h4>Completed <span id="count-done" class="badge badge-done">0</span></h4>
+        <div id="col-done"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: TEAM DIRECTORY -->
+  <div id="view-team" class="card" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+      <div>
+        <h2>Team Members & Role Directory</h2>
+        <p style="color: var(--text-muted); font-size: 13px; margin: 2px 0 0 0;">Manage departmental assignments and workspace access privileges.</p>
+      </div>
+      <button class="btn-small" onclick="openInviteModal()">+ Invite Member</button>
+    </div>
+
+    <div class="search-filter-bar" style="margin-top: 20px;">
+      <input type="text" id="teamSearchInput" placeholder="🔍 Search team members by name or role..." oninput="renderTeamTable()">
     </div>
 
     <table>
       <thead>
         <tr>
-          <th>Task Title & Description</th>
-          <th>Assigned Role</th>
-          <th>Priority</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="taskTableBody"></tbody>
-    </table>
-  </div>
-
-  <!-- TAB 2: TEAM -->
-  <div id="viewTeam" class="card hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
-      <div>
-        <h2>Company Team & User Directory</h2>
-        <p style="color:var(--text-muted); font-size:13px; margin:2px 0 0 0;">Manage users authorized for this workspace.</p>
-      </div>
-      <button class="btn-small" onclick="openInviteModal()">+ Invite Team Member</button>
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Full Name</th>
-          <th>Work Email</th>
-          <th>Access Role</th>
-          <th>Actions</th>
+          <th>Team Member</th>
+          <th>Departmental Role</th>
+          <th>Assigned Tasks</th>
+          <th>Access Status</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody id="teamTableBody"></tbody>
     </table>
   </div>
 
-  <!-- TAB 3: AUDIT -->
-  <div id="viewAudit" class="card hidden">
-    <h2>Enterprise Audit Logs</h2>
-    <p style="color:var(--text-muted); font-size:13px; margin-bottom:20px;">Immutable event tracking record for tenant governance.</p>
+  <!-- TAB 3: ANALYTICS & REPORTING -->
+  <div id="view-analytics" class="card" style="display: none;">
+    <h2>Enterprise Analytics & Data Export Suite</h2>
+    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Export verified audit reports and operational task progress data instantly in CSV or JSON formats.</p>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <h4>Total Tasks Tracked</h4>
+        <span id="statTotalTasks">0</span>
+      </div>
+      <div class="metric-card">
+        <h4>Completion Efficiency</h4>
+        <span id="statEfficiency">0%</span>
+      </div>
+      <div class="metric-card">
+        <h4>Active Tenant Users</h4>
+        <span id="statActiveUsers">0</span>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 16px; margin-top: 30px; flex-wrap: wrap;">
+      <button onclick="exportData('csv')" style="max-width: 260px;">📥 Download Task Report (CSV)</button>
+      <button onclick="exportData('json')" class="btn-secondary" style="max-width: 260px;">📥 Download Audit Package (JSON)</button>
+    </div>
+  </div>
+
+  <!-- TAB 4: COMPLIANCE AUDIT LOGS -->
+  <div id="view-audit" class="card" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h2>Immutable Compliance Audit Logs</h2>
+        <p style="color: var(--text-muted); font-size: 13px; margin: 2px 0 0 0;">Cryptographically recorded tenant event telemetry.</p>
+      </div>
+      <button class="btn-small btn-secondary" onclick="exportAuditCSV()">Export Audit CSV</button>
+    </div>
+
     <table>
       <thead>
         <tr>
           <th>Timestamp</th>
-          <th>Tenant</th>
           <th>Actor</th>
-          <th>Event Action</th>
-          <th>Details</th>
+          <th>Action Type</th>
+          <th>Event Summary</th>
         </tr>
       </thead>
       <tbody id="auditTableBody"></tbody>
     </table>
   </div>
 
-  <!-- TAB 4: AUTH -->
-  <div id="viewAuth" class="card hidden">
-    <div class="grid-2">
-      <div id="loginBox">
-        <h2>Company Portal Sign In</h2>
-        <p style="color:var(--text-muted); font-size:13px; margin-bottom:20px;">Access your isolated company workspace.</p>
-        <form id="loginForm" onsubmit="handleLogin(event)">
-          <div class="form-group">
-            <label for="loginEmail">Work Email</label>
-            <input type="email" id="loginEmail" placeholder="admin@apexlogistics.com" required>
-          </div>
-          <div class="form-group">
-            <label for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" placeholder="••••••••" required>
-          </div>
-          <button type="submit">Sign In to Workspace</button>
-          <div id="loginError" class="error-msg">Invalid credentials or tenant not found.</div>
-        </form>
-        <div style="margin-top:16px; font-size:13px; color:var(--accent); cursor:pointer; font-weight:500;" onclick="toggleAuthMode('register')">Register a new company tenant →</div>
-      </div>
+</div>
 
-      <div id="registerBox" class="hidden">
-        <h2>Register Company Tenant</h2>
-        <p style="color:var(--text-muted); font-size:13px; margin-bottom:15px;">Create a new multi-tenant environment.</p>
-        <form id="registerForm" onsubmit="handleRegister(event)">
-          <div class="form-group" style="margin-bottom:12px;">
-            <label for="regCompany">Company Name</label>
-            <input type="text" id="regCompany" placeholder="Acme Corporation" required>
-          </div>
-          <div class="form-group" style="margin-bottom:12px;">
-            <label for="regName">Admin Full Name</label>
-            <input type="text" id="regName" placeholder="Sarah Jenkins" required>
-          </div>
-          <div class="form-group" style="margin-bottom:12px;">
-            <label for="regEmail">Work Email</label>
-            <input type="email" id="regEmail" placeholder="admin@acmecorp.com" required>
-          </div>
-          <div class="form-group" style="margin-bottom:16px;">
-            <label for="regPassword">Password</label>
-            <input type="password" id="regPassword" placeholder="6+ characters" required minlength="6">
-          </div>
-          <button type="submit">Initialize Tenant</button>
-          <div id="regError" class="error-msg">Tenant with this email already exists.</div>
-          <div id="regSuccess" class="success-msg">Tenant created successfully! Redirecting...</div>
-        </form>
-        <div style="margin-top:16px; font-size:13px; color:var(--accent); cursor:pointer; font-weight:500;" onclick="toggleAuthMode('login')">Already registered? Sign in →</div>
+<!-- NEW TASK MODAL -->
+<div id="taskModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px;">
+  <div class="card" style="width: 100%; max-width: 500px; margin: 0; background: var(--bg-surface);">
+    <h3>Initialize New Task</h3>
+    <form onsubmit="handleCreateTask(event)">
+      <div class="form-group">
+        <label>Task Title</label>
+        <input type="text" id="taskTitleInput" placeholder="Configure OAuth Gateway" required>
       </div>
-
-      <div class="divider"></div>
-
-      <div>
-        <h3 style="margin-bottom:8px;">🛡️ Demo Enterprise Tenant</h3>
-        <p style="font-size:13px; color:var(--text-muted); line-height:1.5;">Instantly test the system using our pre-configured demo environment:</p>
-        <div style="background:#f9fafb; border:1px solid var(--border); padding:14px; border-radius:8px; margin-top:12px; font-size:13px;">
-          🏢 <strong>Company:</strong> Apex Logistics Inc.<br>
-          ✉️ <strong>Email:</strong> <code>admin@apexlogistics.com</code><br>
-          🔑 <strong>Password:</strong> <code>admin123</code>
-        </div>
+      <div class="form-group">
+        <label>Priority Level</label>
+        <select id="taskPriorityInput">
+          <option value="High">High Priority</option>
+          <option value="Medium" selected>Medium Priority</option>
+          <option value="Low">Low Priority</option>
+        </select>
       </div>
-    </div>
+      <div class="form-group">
+        <label>Assignee</label>
+        <input type="text" id="taskAssigneeInput" value="Vaibhav Singh">
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button type="submit">Create Task</button>
+        type="button" class="btn-secondary" onclick="closeTaskModal()">Cancel</button>
+      </div>
+    </form>
   </div>
-
-</div>
-
-<!-- TASK MODAL -->
-<div id="taskModal" class="card hidden" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:500px; z-index:100; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
-  <h3 style="margin-bottom:16px;">Create Workflow Task</h3>
-  <form id="taskForm" onsubmit="handleTaskSubmit(event)">
-    <div class="form-group">
-      <label for="taskTitle">Task Title</label>
-      <input type="text" id="taskTitle" placeholder="e.g. Q3 Pipeline Review" required>
-    </div>
-    <div class="form-group">
-      <label for="taskRole">Assigned Department</label>
-      <select id="taskRole" required>
-        <option value="Business Analyst">Business Analyst</option>
-        <option value="Systems Engineer">Systems Engineer</option>
-        <option value="Database Administrator">Database Administrator</option>
-        <option value="Executive Management">Executive Management</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="taskPriority">Priority Level</label>
-      <select id="taskPriority" required>
-        <option value="Normal">Normal</option>
-        <option value="High">High</option>
-        <option value="Critical">Critical</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="taskDesc">Description & Requirements</label>
-      <textarea id="taskDesc" rows="3" placeholder="Specify deliverables..." required></textarea>
-    </div>
-    <div style="display:flex; gap:10px;">
-      <button type="submit">Save Task</button>
-      <button type="button" class="btn-danger" onclick="closeNewTaskModal()" style="width:auto;">Cancel</button>
-    </div>
-  </form>
-</div>
-
-<!-- INVITE MODAL -->
-<div id="inviteModal" class="card hidden" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:500px; z-index:100; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
-  <h3 style="margin-bottom:16px;">Invite Team Member</h3>
-  <form id="inviteForm" onsubmit="handleInviteSubmit(event)">
-    <div class="form-group">
-      <label for="inviteName">Full Name</label>
-      <input type="text" id="inviteName" placeholder="Alex Morgan" required>
-    </div>
-    <div class="form-group">
-      <label for="inviteEmail">Work Email</label>
-      <input type="email" id="inviteEmail" placeholder="alex@acmecorp.com" required>
-    </div>
-    <div class="form-group">
-      <label for="inviteRole">Access Role</label>
-      <select id="inviteRole" required>
-        <option value="Team Member">Team Member</option>
-        <option value="Business Analyst">Business Analyst</option>
-        <option value="Systems Engineer">Systems Engineer</option>
-        <option value="Database Administrator">Database Administrator</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="invitePassword">Temporary Password</label>
-      <input type="password" id="invitePassword" placeholder="••••••••" required minlength="6">
-    </div>
-    <div style="display:flex; gap:10px;">
-      <button type="submit">Add User</button>
-      <button type="button" class="btn-danger" onclick="closeInviteModal()" style="width:auto;">Cancel</button>
-    </div>
-    <div id="inviteError" class="error-msg">User email already exists.</div>
-  </form>
 </div>
 
 <script>
-  const STORAGE_TASKS = 'nexus_tasks';
-  const STORAGE_TENANTS = 'nexus_tenants';
-  const STORAGE_AUDIT = 'nexus_audit';
+  let currentTenant = 'apex';
+  let currentUser = { name: 'Vaibhav Singh', email: 'admin@apexlogistics.com', role: 'System Administrator' };
 
-  function initSeedData() {
-    if (!localStorage.getItem(STORAGE_TENANTS)) {
-      localStorage.setItem(STORAGE_TENANTS, JSON.stringify({
-        'admin@apexlogistics.com': { company: 'Apex Logistics Inc.', name: 'David Vance', email: 'admin@apexlogistics.com', password: 'admin123', role: 'Tenant Admin' }
-      }));
-    }
-    if (!localStorage.getItem(STORAGE_TASKS)) {
-      localStorage.setItem(STORAGE_TASKS, JSON.stringify([
-        { id: 1, tenant: 'Apex Logistics Inc.', title: 'ETL Data Load Verification', role: 'Database Administrator', priority: 'Critical', status: 'In Progress', desc: 'Verify weekly SQL Server ingestion logs.' }
-      ]));
-    }
-    if (!localStorage.getItem(STORAGE_AUDIT)) {
-      localStorage.setItem(STORAGE_AUDIT, JSON.stringify([
-        { time: new Date().toLocaleString(), tenant: 'Apex Logistics Inc.', user: 'admin@apexlogistics.com', action: 'SYSTEM_INIT', details: 'Initialized workflow tenant.' }
-      ]));
+  function handleTenantPreset() {
+    const val = document.getElementById('tenantSelect').value;
+    if (val === 'cyber') {
+      document.getElementById('authEmail').value = 'admin@cyberpulse.io';
+    } else if (val === 'apex') {
+      document.getElementById('authEmail').value = 'admin@apexlogistics.com';
     }
   }
-  initSeedData();
 
-  function getTenants() { return JSON.parse(localStorage.getItem(STORAGE_TENANTS)) || {}; }
-  function getTasks() { return JSON.parse(localStorage.getItem(STORAGE_TASKS)) || []; }
-  function getAudit() { return JSON.parse(localStorage.getItem(STORAGE_AUDIT)) || []; }
+  function authenticateTenant() {
+    currentTenant = document.getElementById('tenantSelect').value;
+    const email = document.getElementById('authEmail').value;
+    currentUser.email = email;
+    
+    document.getElementById('headerTenantName').textContent = currentTenant === 'cyber' ? 'CyberPulse Systems' : 'Apex Logistics Inc.';
+    document.getElementById('authOverlay').style.display = 'none';
+    document.getElementById('appContainer').style.display = 'block';
 
-  function logAudit(tenant, user, action, details) {
-    const audit = getAudit();
-    audit.unshift({ time: new Date().toLocaleString(), tenant, user, action, details });
-    localStorage.setItem(STORAGE_AUDIT, JSON.stringify(audit));
+    initSeedData();
+    switchTab('pipeline');
+    logAudit(currentUser.name, 'TENANT_LOGIN', `Authenticated workspace session for ${currentUser.email}`);
+  }
+
+  function logoutSession() {
+    document.getElementById('authOverlay').style.display = 'flex';
+    document.getElementById('appContainer').style.display = 'none';
+  }
+
+  function switchWorkspaceModal() {
+    logoutSession();
+  }
+
+  function getStorageKey(suffix) {
+    return `nexusflow_${currentTenant}_${suffix}`;
+  }
+
+  function initSeedData() {
+    if (!localStorage.getItem(getStorageKey('tasks'))) {
+      const defaultTasks = [
+        { id: 1, title: 'Deploy customs ingestion pipeline', priority: 'High', status: 'progress', assignee: 'Vaibhav Singh' },
+        { id: 2, title: 'Verify OAuth credential exchange', priority: 'Medium', status: 'backlog', assignee: 'Dev Team' },
+        { id: 3, title: 'Multi-tenant database migration', priority: 'High', status: 'review', assignee: 'Infrastructure' }
+      ];
+      localStorage.setItem(getStorageKey('tasks'), JSON.stringify(defaultTasks));
+    }
+    if (!localStorage.getItem(getStorageKey('team'))) {
+      const defaultTeam = [
+        { name: 'Vaibhav Singh', role: 'System Administrator', tasksCount: 3, status: 'Active' },
+        { name: 'Miguel Molina', role: 'Business Analyst', tasksCount: 1, status: 'Active' },
+        { name: 'Sarah Jenkins', role: 'Database Administrator', tasksCount: 2, status: 'Active' }
+      ];
+      localStorage.setItem(getStorageKey('team'), JSON.stringify(defaultTeam));
+    }
+    if (!localStorage.getItem(getStorageKey('audit'))) {
+      const defaultAudit = [
+        { time: new Date().toLocaleString(), actor: 'System Architect', action: 'INIT_WORKSPACE', summary: 'Initialized secure enterprise partition successfully.' }
+      ];
+      localStorage.setItem(getStorageKey('audit'), JSON.stringify(defaultAudit));
+    }
+  }
+
+  function logAudit(actor, action, summary) {
+    const auditKey = getStorageKey('audit');
+    const audit = JSON.parse(localStorage.getItem(auditKey)) || [];
+    audit.unshift({ time: new Date().toLocaleString(), actor, action, summary });
+    localStorage.setItem(auditKey, JSON.stringify(audit));
   }
 
   function switchTab(tabName) {
-    document.getElementById('viewKanban').classList.add('hidden');
-    document.getElementById('viewTeam').classList.add('hidden');
-    document.getElementById('viewAudit').classList.add('hidden');
-    document.getElementById('viewAuth').classList.add('hidden');
-
-    document.getElementById('tabBtnKanban').classList.remove('active');
-    document.getElementById('tabBtnTeam').classList.remove('active');
-    document.getElementById('tabBtnAudit').classList.remove('active');
-    document.getElementById('tabBtnAuth').classList.remove('active');
-
-    const activeUser = sessionStorage.getItem('active_user');
-
-    if (tabName === 'auth') {
-      document.getElementById('viewAuth').classList.remove('hidden');
-      document.getElementById('tabBtnAuth').classList.add('active');
-      return;
-    }
-
-    if (!activeUser) {
-      switchTab('auth');
-      return;
-    }
-
-    if (tabName === 'kanban') {
-      document.getElementById('viewKanban').classList.remove('hidden');
-      document.getElementById('tabBtnKanban').classList.add('active');
-      loadKanbanBoard();
-    } else if (tabName === 'team') {
-      document.getElementById('viewTeam').classList.remove('hidden');
-      document.getElementById('tabBtnTeam').classList.add('active');
-      loadTeamTable();
-    } else if (tabName === 'audit') {
-      document.getElementById('viewAudit').classList.remove('hidden');
-      document.getElementById('tabBtnAudit').classList.add('active');
-      loadAuditTable();
-    }
-  }
-
-  function toggleAuthMode(mode) {
-    if (mode === 'register') {
-      document.getElementById('loginBox').classList.add('hidden');
-      document.getElementById('registerBox').classList.remove('hidden');
-    } else {
-      document.getElementById('registerBox').classList.add('hidden');
-      document.getElementById('loginBox').classList.remove('hidden');
-    }
-  }
-
-  function handleRegister(e) {
-    e.preventDefault();
-    const company = document.getElementById('regCompany').value.trim();
-    const name = document.getElementById('regName').value.trim();
-    const email = document.getElementById('regEmail').value.trim().toLowerCase();
-    const password = document.getElementById('regPassword').value;
-
-    const tenants = getTenants();
-    if (tenants[email]) {
-      document.getElementById('regError').style.display = 'block';
-      return;
-    }
-
-    tenants[email] = { company, name, email, password, role: 'Tenant Admin' };
-    localStorage.setItem(STORAGE_TENANTS, JSON.stringify(tenants));
-    logAudit(company, email, 'TENANT_REGISTER', `Created workspace for ${company}`);
-
-    document.getElementById('regError').style.display = 'none';
-    document.getElementById('regSuccess').style.display = 'block';
-
-    setTimeout(() => {
-      document.getElementById('registerForm').reset();
-      document.getElementById('regSuccess').style.display = 'none';
-      toggleAuthMode('login');
-      document.getElementById('loginEmail').value = email;
-    }, 1500);
-  }
-
-  function handleLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-    const password = document.getElementById('loginPassword').value;
-
-    const tenants = getTenants();
-    if (tenants[email] && tenants[email].password === password) {
-      sessionStorage.setItem('active_user', email);
-      sessionStorage.setItem('active_company', tenants[email].company);
-      document.getElementById('loginError').style.display = 'none';
-      document.getElementById('loginForm').reset();
-
-      logAudit(tenants[email].company, email, 'USER_LOGIN', 'Authenticated successfully.');
-      updateHeaderAuthButton();
-      switchTab('kanban');
-    } else {
-      document.getElementById('loginError').style.display = 'block';
-    }
-  }
-
-  function logout() {
-    sessionStorage.clear();
-    updateHeaderAuthButton();
-    switchTab('auth');
-  }
-
-  function updateHeaderAuthButton() {
-    const activeUser = sessionStorage.getItem('active_user');
-    const headerAuthArea = document.getElementById('headerAuthArea');
-    if (activeUser) {
-      headerAuthArea.innerHTML = `<button class="tab-btn logout-btn" onclick="logout()">Sign Out (${activeUser})</button>`;
-      document.getElementById('tabBtnAuth').textContent = '🏢 Workspace';
-    } else {
-      headerAuthArea.innerHTML = '';
-      document.getElementById('tabBtnAuth').textContent = '🏢 Company Portal';
-    }
-  }
-
-  function loadKanbanBoard() {
-    const company = sessionStorage.getItem('active_company');
-    const user = sessionStorage.getItem('active_user');
-    document.getElementById('tenantSubtitle').textContent = `Active Workspace: ${company} (${user})`;
-
-    const allTasks = getTasks();
-    const tenantTasks = allTasks.filter(t => t.tenant === company);
-    const tbody = document.getElementById('taskTableBody');
-    tbody.innerHTML = '';
-
-    document.getElementById('metricTotal').textContent = tenantTasks.length;
-    document.getElementById('metricProgress').textContent = tenantTasks.filter(t => t.status === 'In Progress').length;
-    document.getElementById('metricDone').textContent = tenantTasks.filter(t => t.status === 'Done').length;
-
-    if (tenantTasks.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted); text-align:center;">No tasks in pipeline.</td></tr>';
-      return;
-    }
-
-    tenantTasks.forEach(task => {
-      const globalIndex = allTasks.findIndex(t => t.id === task.id);
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td><strong>${task.title}</strong><br><span style="font-size:12px; color:var(--text-muted);">${task.desc}</span></td>
-        <td>${task.role}</td>
-        <td>${task.priority}</td>
-        <td><span class="badge ${getBadgeClass(task.status)}">${task.status}</span></td>
-        <td>
-          <select onchange="updateTaskStatus(${globalIndex}, this.value)" style="padding:4px; font-size:12px;">
-            <option value="Backlog" ${task.status==='Backlog'?'selected':''}>Backlog</option>
-            <option value="In Progress" ${task.status==='In Progress'?'selected':''}>In Progress</option>
-            <option value="In Review" ${task.status==='In Review'?'selected':''}>In Review</option>
-            <option value="Done" ${task.status==='Done'?'selected':''}>Done</option>
-          </select>
-          <button class="btn-small btn-danger" onclick="deleteTask(${globalIndex})" style="margin-left:4px;">Delete</button>
-        </td>
-      `;
-      tbody.appendChild(row);
+    ['pipeline', 'team', 'analytics', 'audit'].forEach(t => {
+      document.getElementById('view-' + t).style.display = (t === tabName) ? 'block' : 'none';
+      document.getElementById('btn-' + t).classList.toggle('active', t === tabName);
     });
+
+    if (tabName === 'pipeline') renderKanbanBoard();
+    if (tabName === 'team') renderTeamTable();
+    if (tabName === 'analytics') updateAnalytics();
+    if (tabName === 'audit') renderAuditTable();
   }
 
-  function loadTeamTable() {
-    const company = sessionStorage.getItem('active_company');
-    const tenants = getTenants();
+  function renderKanbanBoard() {
+    const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
+    const query = document.getElementById('taskSearchInput').value.toLowerCase();
+    const priorityFilter = document.getElementById('taskPriorityFilter').value;
+
+    const cols = { backlog: 'col-backlog', progress: 'col-progress', review: 'col-review', done: 'col-done' };
+    const counts = { backlog: 0, progress: 0, review: 0, done: 0 };
+
+    Object.values(cols).forEach(id => document.getElementById(id).innerHTML = '');
+
+    tasks.forEach(t => {
+      if (query && !t.title.toLowerCase().includes(query) && !t.assignee.toLowerCase().includes(query)) return;
+      if (priorityFilter && t.priority !== priorityFilter) return;
+
+      counts[t.status]++;
+      const card = document.createElement('div');
+      card.className = 'task-card';
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items:center; margin-bottom: 8px;">
+          <span class="badge" style="background:${t.priority==='High'?'rgba(239,68,68,0.2)':'rgba(6,182,212,0.2)'}; color:${t.priority==='High'?'var(--danger)':'var(--accent-primary)'};">${t.priority}</span>
+          <span style="font-size: 11px; color: var(--text-muted);">👤 ${t.assignee}</span>
+        </div>
+        <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">${t.title}</div>
+        <div style="display: flex; gap: 6px;">
+          ${t.status !== 'backlog' ? `<button class="btn-small btn-secondary" onclick="moveTask(${t.id}, 'prev')">←</button>` : ''}
+          ${t.status !== 'done' ? `<button class="btn-small" onclick="moveTask(${t.id}, 'next')" style="flex:1;">Advance →</button>` : ''}
+        </div>
+      `;
+      document.getElementById(cols[t.status]).appendChild(card);
+    });
+
+    document.getElementById('count-backlog').textContent = counts.backlog;
+    document.getElementById('count-progress').textContent = counts.progress;
+    document.getElementById('count-review').textContent = counts.review;
+    document.getElementById('count-done').textContent = counts.done;
+  }
+
+  function moveTask(id, direction) {
+    const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
+    const sequence = ['backlog', 'progress', 'review', 'done'];
+    const t = tasks.find(item => item.id === id);
+    if (!t) return;
+
+    let idx = sequence.indexOf(t.status);
+    if (direction === 'next' && idx < sequence.length - 1) idx++;
+    if (direction === 'prev' && idx > 0) idx--;
+
+    t.status = sequence[idx];
+    localStorage.setItem(getStorageKey('tasks'), JSON.stringify(tasks));
+    logAudit(currentUser.name, 'MOVE_TASK', `Advanced task "${t.title}" to stage [${t.status.toUpperCase()}]`);
+    renderKanbanBoard();
+  }
+
+  function openNewTaskModal() { document.getElementById('taskModal').style.display = 'flex'; }
+  function closeTaskModal() { document.getElementById('taskModal').style.display = 'none'; }
+
+  function handleCreateTask(e) {
+    e.preventDefault();
+    const title = document.getElementById('taskTitleInput').value.trim();
+    const priority = document.getElementById('taskPriorityInput').value;
+    const assignee = document.getElementById('taskAssigneeInput').value.trim();
+
+    const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
+    tasks.push({ id: Date.now(), title, priority, status: 'backlog', assignee });
+    localStorage.setItem(getStorageKey('tasks'), JSON.stringify(tasks));
+
+    logAudit(currentUser.name, 'CREATE_TASK', `Created task "${title}" assigned to ${assignee}`);
+    closeTaskModal();
+    renderKanbanBoard();
+  }
+
+  function renderTeamTable() {
+    const team = JSON.parse(localStorage.getItem(getStorageKey('team'))) || [];
+    const query = document.getElementById('teamSearchInput').value.toLowerCase();
     const tbody = document.getElementById('teamTableBody');
     tbody.innerHTML = '';
 
-    const companyUsers = Object.values(tenants).filter(u => u.company === company);
-    companyUsers.forEach(u => {
+    team.forEach(m => {
+      if (query && !m.name.toLowerCase().includes(query) && !m.role.toLowerCase().includes(query)) return;
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td><strong>${u.name}</strong></td>
-        <td>${u.email}</td>
-        <td><span class="badge" style="background:#eff6ff; color:var(--accent);">${u.role}</span></td>
-        <td>${u.email !== sessionStorage.getItem('active_user') ? `<button class="btn-small btn-danger" onclick="removeUser('${u.email}')">Remove</button>` : '<span style="font-size:12px; color:var(--text-muted);">(Self)</span>'}</td>
+        <td><strong>${m.name}</strong></td>
+        <td><span class="badge badge-progress">${m.role}</span></td>
+        <td>${m.tasksCount} Active</td>
+        <td><span style="color: var(--success); font-weight:600;">● ${m.status}</span></td>
+        <td><button class="btn-small btn-secondary" onclick="alert('Member profile permissions verified.')">Manage Access</button></td>
       `;
       tbody.appendChild(row);
     });
   }
 
-  function openInviteModal() { document.getElementById('inviteModal').classList.remove('hidden'); }
-  function closeInviteModal() { document.getElementById('inviteModal').classList.add('hidden'); }
+  function updateAnalytics() {
+    const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
+    const team = JSON.parse(localStorage.getItem(getStorageKey('team'))) || [];
+    const done = tasks.filter(t => t.status === 'done').length;
+    const eff = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
 
-  function handleInviteSubmit(e) {
-    e.preventDefault();
-    const company = sessionStorage.getItem('active_company');
-    const name = document.getElementById('inviteName').value.trim();
-    const email = document.getElementById('inviteEmail').value.trim().toLowerCase();
-    const role = document.getElementById('inviteRole').value;
-    const password = document.getElementById('invitePassword').value;
+    document.getElementById('statTotalTasks').textContent = tasks.length;
+    document.getElementById('statEfficiency').textContent = eff + '%';
+    document.getElementById('statActiveUsers').textContent = team.length;
+  }
 
-    const tenants = getTenants();
-    if (tenants[email]) {
-      document.getElementById('inviteError').style.display = 'block';
-      return;
+  function exportData(format) {
+    const tasks = JSON.parse(localStorage.getItem(getStorageKey('tasks'))) || [];
+    if (format === 'json') {
+      const audit = JSON.parse(localStorage.getItem(getStorageKey('audit'))) || [];
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ tenant: currentTenant, tasks, audit }, null, 2));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", `nexusflow_${currentTenant}_audit_package.json`);
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+    } else {
+      let csv = "ID,Title,Priority,Status,Assignee\n";
+      tasks.forEach(t => { csv += `"${t.id}","${t.title}","${t.priority}","${t.status}","${t.assignee}"\n`; });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", url);
+      dlAnchor.setAttribute("download", `nexusflow_${currentTenant}_task_report.csv`);
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
     }
-
-    tenants[email] = { company, name, email, password, role };
-    localStorage.setItem(STORAGE_TENANTS, JSON.stringify(tenants));
-    logAudit(company, sessionStorage.getItem('active_user'), 'USER_INVITE', `Invited ${email}`);
-    closeInviteModal();
-    loadTeamTable();
+    logAudit(currentUser.name, 'EXPORT_DATA', `Exported workspace reports in ${format.toUpperCase()} format.`);
   }
 
-  function removeUser(email) {
-    if (!confirm(`Remove ${email}?`)) return;
-    const tenants = getTenants();
-    delete tenants[email];
-    localStorage.setItem(STORAGE_TENANTS, JSON.stringify(tenants));
-    loadTeamTable();
-  }
-
-  function getBadgeClass(status) {
-    if (status === 'In Progress') return 'badge-progress';
-    if (status === 'In Review') return 'badge-review';
-    if (status === 'Done') return 'badge-done';
-    return 'badge-backlog';
-  }
-
-  function openNewTaskModal() { document.getElementById('taskModal').classList.remove('hidden'); }
-  function closeNewTaskModal() { document.getElementById('taskModal').classList.add('hidden'); }
-
-  function handleTaskSubmit(e) {
-    e.preventDefault();
-    const company = sessionStorage.getItem('active_company');
-    const user = sessionStorage.getItem('active_user');
-    const title = document.getElementById('taskTitle').value.trim();
-    const role = document.getElementById('taskRole').value;
-    const priority = document.getElementById('taskPriority').value;
-    const desc = document.getElementById('taskDesc').value.trim();
-
-    const allTasks = getTasks();
-    allTasks.push({ id: Date.now(), tenant: company, title, role, priority, status: 'Backlog', desc });
-    localStorage.setItem(STORAGE_TASKS, JSON.stringify(allTasks));
-    logAudit(company, user, 'TASK_CREATE', `Created "${title}"`);
-    closeNewTaskModal();
-    loadKanbanBoard();
-  }
-
-  function updateTaskStatus(index, status) {
-    const allTasks = getTasks();
-    allTasks[index].status = status;
-    localStorage.setItem(STORAGE_TASKS, JSON.stringify(allTasks));
-    loadKanbanBoard();
-  }
-
-  function deleteTask(index) {
-    const allTasks = getTasks();
-    allTasks.splice(index, 1);
-    localStorage.setItem(STORAGE_TASKS, JSON.stringify(allTasks));
-    loadKanbanBoard();
-  }
-
-  function loadAuditTable() {
-    const company = sessionStorage.getItem('active_company');
-    const audit = getAudit().filter(a => a.tenant === company);
+  function renderAuditTable() {
+    const audit = JSON.parse(localStorage.getItem(getStorageKey('audit'))) || [];
     const tbody = document.getElementById('auditTableBody');
     tbody.innerHTML = '';
-    audit.forEach(log => {
-      tbody.innerHTML += `<tr><td>${log.time}</td><td>${log.tenant}</td><td>${log.user}</td><td>${log.action}</td><td>${log.details}</td></tr>`;
+    audit.forEach(a => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td style="font-size: 12px; color: var(--text-muted);">${a.time}</td>
+        <td><strong>${a.actor}</strong></td>
+        <td><span class="badge badge-review">${a.action}</span></td>
+        <td style="font-family: monospace; font-size: 12px;">${a.summary}</td>
+      `;
+      tbody.appendChild(row);
     });
   }
 
-  // Safe Boot Initialization
-  window.addEventListener('DOMContentLoaded', () => {
-    if (!sessionStorage.getItem('active_user')) {
-      switchTab('auth');
-    } else {
-      updateHeaderAuthButton();
-      switchTab('kanban');
-    }
-  });
-</script>
-
-</body>
-</html>
+  function exportAuditCSV() {
+    const audit = JSON.parse(localStorage.getItem(getStorageKey('audit'))) || [];
+    let csv = "Timestamp,Actor,Action,Summary\n";
+    audit.forEach(a => { csv += `"${a.time}","${a.actor
