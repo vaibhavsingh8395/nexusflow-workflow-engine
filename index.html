@@ -36,7 +36,6 @@
       --dp-motion-interaction: 160ms;
       --dp-motion-easing: ease-out;
 
-      /* UI Aliases mapped from Authoritative Tokens */
       --bg-system: var(--dp-color-ground);
       --bg-surface: var(--dp-color-panel);
       --bg-card: var(--dp-color-panel);
@@ -56,25 +55,20 @@
 
     body { background-color: var(--bg-system); margin: 0; padding: 24px; color: var(--text-main); min-height: 100vh; font-size: var(--dp-typography-body); line-height: var(--dp-typography-body-leading); }
 
-    /* CONTAINER LAYOUT */
     .app-container { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--dp-spacing-grid-gap); }
 
-    /* HEADER BAR */
     header { background: var(--bg-surface); border: var(--dp-border-hairline) solid var(--border-color); border-radius: var(--dp-radius-panel); padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.03); flex-wrap: wrap; gap: 16px; }
     .brand-area { display: flex; align-items: center; gap: 14px; }
     .logo-badge { background: var(--accent); width: 44px; height: 44px; border-radius: var(--dp-radius-panel); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--dp-color-on-accent); box-shadow: 0 4px 12px rgba(7, 76, 224, 0.25); flex-shrink: 0; }
     
-    /* TABS NAVIGATION */
     .nav-menu { display: flex; gap: 8px; background: var(--dp-color-ground-muted); padding: 6px; border-radius: 14px; border: var(--dp-border-hairline) solid var(--border-color); overflow-x: auto; }
     .nav-btn { background: transparent; color: var(--text-muted); border: none; padding: 10px 18px; border-radius: 10px; font-weight: 500; cursor: pointer; font-size: var(--dp-typography-interface); transition: all var(--dp-motion-interaction) var(--dp-motion-easing); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
     .nav-btn:hover { color: var(--text-main); background: var(--bg-hover); }
     .nav-btn.active { background: var(--bg-surface); color: var(--text-main); font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: var(--dp-border-hairline) solid var(--border-color); }
 
-    /* CARDS & PANELS */
     .card { background: var(--bg-surface); border: var(--dp-border-hairline) solid var(--border-color); border-radius: var(--dp-radius-panel); padding: 32px; box-shadow: 0 6px 24px rgba(0,0,0,0.02); transition: border-color var(--dp-motion-interaction); }
     .card:hover { border-color: rgba(7, 76, 224, 0.3); }
 
-    /* FORM CONTROLS */
     .form-group { margin-bottom: 20px; }
     label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted); font-size: var(--dp-typography-label); text-transform: uppercase; letter-spacing: 0.05em; }
     input, select, textarea { width: 100%; padding: 12px 16px; border: var(--dp-border-hairline) solid var(--border-color); border-radius: 10px; font-size: var(--dp-typography-interface); background: var(--bg-system); color: var(--text-main); transition: all var(--dp-motion-interaction); }
@@ -87,7 +81,6 @@
     .btn-secondary:hover { background: var(--border-color); }
     .btn-small { padding: 6px 12px; font-size: var(--dp-typography-small); width: auto !important; display: inline-block !important; }
 
-    /* KANBAN BOARD */
     .kanban-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--dp-spacing-grid-gap); margin-top: 24px; }
     .kanban-col { background: var(--dp-color-ground-muted); border: var(--dp-border-hairline) solid var(--border-color); border-radius: var(--dp-radius-panel); padding: 20px; min-height: 450px; display: flex; flex-direction: column; gap: 14px; }
     .kanban-col h4 { margin: 0; font-size: var(--dp-typography-small); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
@@ -95,13 +88,11 @@
     .kanban-card { background: var(--bg-surface); border: var(--dp-border-hairline) solid var(--border-color); border-radius: 10px; padding: 16px; cursor: grab; transition: all var(--dp-motion-interaction); box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
     .kanban-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.05); }
 
-    /* BADGES */
     .badge { padding: 4px 10px; border-radius: 20px; font-size: var(--dp-typography-label); font-weight: 600; display: inline-block; }
     .badge-high { background: rgba(239, 68, 68, 0.12); color: var(--danger); border: var(--dp-border-hairline) solid rgba(239, 68, 68, 0.25); }
     .badge-med { background: rgba(245, 158, 11, 0.12); color: var(--warning); border: var(--dp-border-hairline) solid rgba(245, 158, 11, 0.25); }
     .badge-low { background: rgba(7, 76, 224, 0.1); color: var(--accent); border: var(--dp-border-hairline) solid rgba(7, 76, 224, 0.25); }
 
-    /* MODAL OVERLAY */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(22, 25, 31, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
     
     table { width: 100%; border-collapse: collapse; margin-top: 16px; }
@@ -184,8 +175,8 @@
 
     <div class="kanban-board">
       <div class="kanban-col"><h4><span>📌 Backlog</span> <span id="count-backlog">0</span></h4><div id="col-backlog" style="display: flex; flex-direction: column; gap: 12px; min-height: 320px;"></div></div>
-      <div class="kanban-col"><h4><span>⚡ In Progress</span> <span id="count-progress">0</span></h4><div id="col-progress" style="display: flex; flex-direction: column; gap: 12px; min-height: 320px;"></div></div>
-      <div class="kanban-col"><h4><span>🔍 In Review</span> <span id="count-review">0</span></h4><div id="col-review" style="display: flex; flex-direction: column; gap: 12px; min-height: 320px;"></div></div>
+      <div class="kanban-col"><h4><span>⚡ In Progress</span> <span id="count-inprogress">0</span></h4><div id="col-inprogress" style="display: flex; flex-direction: column; gap: 12px; min-height: 320px;"></div></div>
+      <div class="kanban-col"><h4><span>🔍 In Review</span> <span id="count-inreview">0</span></h4><div id="col-inreview" style="display: flex; flex-direction: column; gap: 12px; min-height: 320px;"></div></div>
       <div class="kanban-col"><h4><span>✅ Completed</span> <span id="count-completed">0</span></h4><div id="col-completed" style="display: flex; flex-direction: column; gap: 12px; min-height: 320px;"></div></div>
     </div>
   </div>
@@ -253,8 +244,8 @@
 
   function renderKanban() {
     ['Backlog', 'In Progress', 'In Review', 'Completed'].forEach(col => {
-      const key = col.toLowerCase().replace(' ', '');
-      const container = document.getElementById('col-' + (key === 'inprogress' ? 'progress' : key));
+      const key = col.toLowerCase().replace(/\s+/g, '');
+      const container = document.getElementById('col-' + key);
       if (container) container.innerHTML = '';
     });
 
@@ -294,14 +285,14 @@
         <div style="display:flex; gap:6px; justify-content:flex-end;">${prevStatusBtn} ${nextStatusBtn}</div>
       `;
 
-      const targetColId = 'col-' + task.status.toLowerCase().replace(' ', '');
+      const targetColId = 'col-' + task.status.toLowerCase().replace(/\s+/g, '');
       const targetCol = document.getElementById(targetColId);
       if (targetCol) targetCol.appendChild(card);
     });
 
     document.getElementById('count-backlog').textContent = counts['Backlog'];
-    document.getElementById('count-progress').textContent = counts['In Progress'];
-    document.getElementById('count-review').textContent = counts['In Review'];
+    document.getElementById('count-inprogress').textContent = counts['In Progress'];
+    document.getElementById('count-inreview').textContent = counts['In Review'];
     document.getElementById('count-completed').textContent = counts['Completed'];
   }
 
