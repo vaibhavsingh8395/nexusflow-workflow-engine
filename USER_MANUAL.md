@@ -1,29 +1,42 @@
-# NexusFlow ERP - User Manual
+# 📖 NexusFlow ERP | Enterprise User Manual
 
-## 1. Getting Started & Authentication
-1. Access the live portal via your GitHub Pages deployment: [NexusFlow Live Portal](https://vaibhavsingh8395.github.io/nexusflow-workflow-engine/).
-2. Sign in using the pre-configured enterprise demo tenant credentials:
-   - **Company:** Apex Logistics Inc.
-   - **Email:** `admin@apexlogistics.com`
-   - **Password:** `admin123`
-3. Alternatively, click **"Register a new company tenant"** to create your own isolated multi-tenant environment and company workspace.
+Welcome to the **NexusFlow ERP** operational guide. This manual outlines how to manage multi-tenant workspaces, navigate Kanban operational pipelines, and review compliance audit logs.
 
 ---
 
-## 2. Core Features & Navigation
+## 🏢 1. Tenant Management & Authentication
 
-### A. Workflow Pipeline (Kanban)
-* **Overview:** View all active tasks assigned across your workspace, complete with real-time operational KPI metrics at the top of the dashboard (*Total Tasks*, *In Progress*, and *Completed*).
-* **Creating Tasks:** Click the **"+ New Task"** button in the header, specify the task title, description, assigned department (*Business Analyst*, *Systems Engineer*, *Database Administrator*, *Executive Management*), and priority level (*Normal*, *High*, *Critical*).
-* **State Transitions:** Update task progress instantly using the dropdown status selector in the action column (*Backlog* $\rightarrow$ *In Progress* $\rightarrow$ *In Review* $\rightarrow$ *Done*).
+NexusFlow supports secure multi-tenant partitioning:
+* **Logging In:** Use your corporate credentials (e.g., Apex Logistics admin account) to access your organization's isolated workspace.
+* **Tenant Switching:** Use the top-right tenant dropdown in the navigation header to toggle between active organizational partitions instantly.
+* **Tenant Registration:** Register a brand-new corporate entity directly from the welcome onboarding modal to initialize a fresh database partition.
 
-### B. Managing Team Members (`👥 Team Members` Tab)
-* **Directory Control:** Navigate to the **Team Members** tab to view all authorized users operating within your company's isolated workspace.
-* **Inviting Colleagues:** Click **"+ Invite Team Member"**, enter their full name, work email, specialized access role, and temporary password to grant them immediate collaborative access to your tenant pipeline.
-* **User Offboarding:** Administrators can remove user accounts from the directory when personnel change roles or leave the organization.
+---
 
-### C. Audit Logs & Compliance (`🔍 Audit Logs & Compliance` Tab)
-* **Immutable Tracking:** Access the audit log to review real-time, timestamped event trails tracking every user login, tenant registration, task creation, status transition, and user invitation for regulatory governance and compliance.
+## 📋 2. Managing the Kanban Workflow Pipeline
 
-### D. Session Security
-* Use the **"Sign Out"** button in the header to securely terminate your active session and return to the company portal sign-in screen.
+The operational pipeline is structured into four sequential phases:
+1. **Backlog:** Newly submitted tasks and incoming operational requests.
+2. **In Progress:** Active tasks currently being executed by team members.
+3. **In Review:** Tasks undergoing QA verification, code review, or compliance audits.
+4. **Completed:** Successfully finished workflows fulfilling SLA requirements.
+
+### Actions:
+* **Create Task:** Click the **+ Create Task** button to open the creation modal, assign an owner, and set priority (*High*, *Medium*, *Low*).
+* **Search & Filter:** Use the instant search bar to find tasks by title or assignee, or filter by priority levels.
+* **State Transitions:** Use the inline action buttons on each task card to advance or reverse task states across the pipeline columns.
+
+---
+
+## 👥 3. Enterprise Directory & Role Management
+
+The **Team & Client Directory** tab allows administrators to:
+* View active personnel and assigned departmental roles.
+* Manage access privileges ranging from standard contributor access to restricted system administration permissions.
+
+---
+
+## 🔍 4. Compliance & Audit Logs
+
+To maintain strict adherence to enterprise security frameworks:
+* Every major action (such as pipeline deployments, tenant migrations, and task state changes) is automatically recorded in the **Compliance Audit Logs** table with precise UTC/local timestamps and actor attribution.
